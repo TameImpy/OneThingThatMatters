@@ -130,7 +130,7 @@ export default function NewsletterPreview({
     <div style={{ background: '#FFFFFF', maxWidth: '600px', width: '100%', margin: '0 auto', fontFamily: BODY }}>
 
       {/* Masthead */}
-      <div style={{ background: INK, padding: '28px 32px 20px 32px', textAlign: 'center' }}>
+      <div style={{ background: INK, padding: '18px 32px 14px 32px', textAlign: 'center' }}>
         <p style={{
           fontFamily: DISPLAY,
           fontWeight: 900,
@@ -140,28 +140,31 @@ export default function NewsletterPreview({
           letterSpacing: '-0.02em',
           lineHeight: 1,
           color: '#FFFFFF',
-          margin: '0 0 8px 0',
+          margin: '0 0 6px 0',
         }}>
           One Thing That Matters
         </p>
-        <p style={{ fontFamily: BODY, fontSize: '14px', color: '#FFFFFF', opacity: 0.9, margin: '0 0 16px 0' }}>
+        <p style={{ fontFamily: BODY, fontSize: '14px', color: '#FFFFFF', opacity: 0.9, margin: '0 0 10px 0' }}>
           One signal in AI. Every day. Every Angle.
         </p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          <span style={{
-            display: 'inline-block',
-            transform: 'rotate(-5deg)',
-            transformOrigin: 'left bottom',
-            fontFamily: DISPLAY,
-            fontWeight: 900,
-            fontSize: '52px',
-            color: '#FFFFFF',
-            opacity: 0.85,
-            lineHeight: 1,
-          }}>
-            №{issueNumber ?? '—'}
-          </span>
-          <p style={{ fontFamily: BODY, fontSize: '13px', color: '#FFFFFF', opacity: 0.75, margin: 0 }}>
+          <div style={{ display: 'inline-block', transform: 'rotate(-5deg)', transformOrigin: 'left bottom' }}>
+            <span style={{
+              display: 'block',
+              fontFamily: DISPLAY,
+              fontWeight: 900,
+              fontSize: '40px',
+              color: '#FFFFFF',
+              opacity: 0.85,
+              lineHeight: 1,
+            }}>
+              №{issueNumber ?? '—'}
+            </span>
+            <span style={{ display: 'block', fontFamily: BODY, fontSize: '11px', color: '#FFFFFF', opacity: 0.6, letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: '3px' }}>
+              Issue
+            </span>
+          </div>
+          <p style={{ fontFamily: BODY, fontSize: '13px', color: '#FFFFFF', opacity: 0.75, margin: '0 0 -4px 0' }}>
             {formatDate(issueDate)}
           </p>
         </div>

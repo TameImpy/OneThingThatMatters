@@ -99,16 +99,19 @@ export function renderNewsletterHTML(data: IssueData): string {
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
         <!-- Masthead -->
-        <tr><td style="background:${c.ink};padding:28px 32px 20px 32px;text-align:center;">
-          <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:48px;text-transform:uppercase;letter-spacing:-0.02em;line-height:1;color:${c.white};margin:0 0 8px 0;">One Thing That Matters</p>
-          <p style="font-family:${f.body};font-size:14px;color:${c.white};opacity:0.9;margin:0 0 16px 0;">One signal in AI. Every day. Every Angle.</p>
+        <tr><td style="background:${c.ink};padding:18px 32px 14px 32px;text-align:center;">
+          <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:48px;text-transform:uppercase;letter-spacing:-0.02em;line-height:1;color:${c.white};margin:0 0 6px 0;">One Thing That Matters</p>
+          <p style="font-family:${f.body};font-size:14px;color:${c.white};opacity:0.9;margin:0 0 10px 0;">One signal in AI. Every day. Every Angle.</p>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
             <tr>
               <td style="vertical-align:bottom;text-align:left;width:50%;">
-                <span style="display:inline-block;transform:rotate(-5deg);transform-origin:left bottom;font-family:${f.display};font-weight:900;font-size:52px;color:${c.white};opacity:0.85;line-height:1;">&#8470;${issueNumber ?? '&mdash;'}</span>
+                <div style="display:inline-block;transform:rotate(-5deg);transform-origin:left bottom;">
+                  <span style="display:block;font-family:${f.display};font-weight:900;font-size:40px;color:${c.white};opacity:0.85;line-height:1;">&#8470;${issueNumber ?? '&mdash;'}</span>
+                  <span style="display:block;font-family:${f.body};font-size:11px;color:${c.white};opacity:0.6;letter-spacing:0.12em;text-transform:uppercase;margin-top:3px;">Issue</span>
+                </div>
               </td>
-              <td style="vertical-align:bottom;text-align:right;width:50%;">
-                <p style="font-family:${f.body};font-size:13px;color:${c.white};opacity:0.75;margin:0;">${formatDate(issue_date)}</p>
+              <td style="vertical-align:bottom;text-align:right;padding-bottom:0;width:50%;">
+                <p style="font-family:${f.body};font-size:13px;color:${c.white};opacity:0.75;margin:0;position:relative;top:4px;">${formatDate(issue_date)}</p>
               </td>
             </tr>
           </table>
