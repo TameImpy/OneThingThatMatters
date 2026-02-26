@@ -71,27 +71,41 @@ export function renderNewsletterHTML(data: IssueData): string {
   const section = (content: string) =>
     `<tr><td style="background:${c.white};padding:24px 32px;">${content}</td></tr>`
 
+  // Escape user/AI content before embedding in HTML.
+  // &#64; prevents email clients from auto-detecting @ as an email address.
+  const e = (text: string): string =>
+    text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/@/g, '&#64;')
+
   const scoreBadge = (score: number | null) =>
     score != null
       ? `<span style="display:inline-block;background:${c.sky};color:${c.white};font-family:${f.body};font-size:11px;font-weight:700;letter-spacing:0.04em;padding:3px 10px;border-radius:999px;margin-bottom:10px;">${score}/10</span>`
       : ''
 
   const title = (text: string) =>
-    `<p style="font-family:${f.body};font-size:18px;font-weight:700;color:${c.textPrimary};margin:0 0 12px 0;line-height:1.35;">${text}</p>`
+    `<p style="font-family:${f.body};font-size:18px;font-weight:700;color:${c.textPrimary};margin:0 0 12px 0;line-height:1.35;">${e(text)}</p>`
 
   const body = (text: string | null) =>
     text
-      ? `<p style="font-family:${f.body};font-size:16px;color:${c.textPrimary};margin:0 0 16px 0;line-height:1.7;">${text}</p>`
+      ? `<p style="font-family:${f.body};font-size:16px;color:${c.textPrimary};margin:0 0 16px 0;line-height:1.7;">${e(text)}</p>`
       : ''
 
   const muted = (text: string | null) =>
     text
-      ? `<p style="font-family:${f.body};font-size:13px;color:${c.textMuted};font-style:italic;margin:0 0 12px 0;line-height:1.5;">${text}</p>`
+      ? `<p style="font-family:${f.body};font-size:13px;color:${c.textMuted};font-style:italic;margin:0 0 12px 0;line-height:1.5;">${e(text)}</p>`
       : ''
+
+  const bulletList = (...items: (string | null | undefined)[]) => {
+    const filtered = items.filter((x): x is string => !!x)
+    if (!filtered.length) return ''
+    return `<ul style="margin:0 0 16px 0;padding:0 0 0 18px;">${filtered.map(item => `<li style="font-family:${f.body};font-size:15px;color:${c.textPrimary};line-height:1.7;margin-bottom:8px;">${e(item)}</li>`).join('')}</ul>`
+  }
+
+  const subheading = (text: string) =>
+    `<p style="font-family:${f.body};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${c.textMuted};margin:0 0 6px 0;">${text}</p>`
 
   const authors = (text: string | null) =>
     text
-      ? `<p style="font-family:${f.body};font-size:13px;color:${c.textMuted};margin:0 0 12px 0;">${text}</p>`
+      ? `<p style="font-family:${f.body};font-size:13px;color:${c.textMuted};margin:0 0 12px 0;">${e(text)}</p>`
       : ''
 
   const cta = (href: string, text: string) =>
@@ -169,24 +183,13 @@ export function renderNewsletterHTML(data: IssueData): string {
           ${art.caption || art.artist_name ? `<p style="font-family:${f.body};font-size:13px;color:${c.textMuted};font-style:italic;margin:0;padding:8px 32px;">${art.caption ?? ''}${art.artist_name ? ` &mdash; ${art.artist_name}` : ''}</p>` : ''}
         </td></tr>` : ''}
 
-        ${watch ? `
-        ${banner('One Video That Matters')}
-        ${section(`
-          ${scoreBadge(watch.fit_score)}
-          ${title(watch.title)}
-          ${body(watch.summary)}
-          ${muted(watch.why_it_matters)}
-          ${watch.thumbnail_url ? `<img src="${watch.thumbnail_url}" alt="" width="536" style="display:block;width:100%;max-height:220px;object-fit:cover;margin-bottom:12px;">` : ''}
-          ${cta(watch.url, '&rarr; Watch on YouTube')}
-        `)}` : ''}
-
         ${news ? `
         ${banner('One Article That Matters')}
         ${section(`
           ${scoreBadge(news.fit_score)}
           ${title(news.title)}
-          ${body(news.summary)}
-          ${muted(news.why_it_matters)}
+          ${news.summary ? subheading('Summary') + bulletList(news.summary) : ''}
+          ${news.why_it_matters ? subheading('Why it matters') + bulletList(news.why_it_matters) : ''}
           ${cta(news.url, '&rarr; Read the article')}
         `)}` : ''}
 
@@ -196,17 +199,27 @@ export function renderNewsletterHTML(data: IssueData): string {
           ${scoreBadge(research.fit_score)}
           ${title(research.title)}
           ${authors(research.authors ?? null)}
-          ${body(research.summary_llm)}
-          ${muted(research.why_it_matters)}
+          ${research.summary_llm ? subheading('Summary') + bulletList(research.summary_llm) : ''}
+          ${research.why_it_matters ? subheading('Why it matters') + bulletList(research.why_it_matters) : ''}
           ${research.pdf_url ? cta(research.pdf_url, '&rarr; Read the paper') : ''}
+        `)}` : ''}
+
+        ${watch ? `
+        ${banner('One Video That Matters')}
+        ${section(`
+          ${scoreBadge(watch.fit_score)}
+          ${title(watch.title)}
+          ${watch.summary ? subheading('Summary') + bulletList(watch.summary) : ''}
+          ${watch.why_it_matters ? subheading('Why it matters') + bulletList(watch.why_it_matters) : ''}
+          ${watch.thumbnail_url ? `<img src="${watch.thumbnail_url}" alt="" width="536" style="display:block;width:100%;max-height:220px;object-fit:cover;margin-bottom:12px;">` : ''}
+          ${cta(watch.url, '&rarr; Watch on YouTube')}
         `)}` : ''}
 
         ${story ? `
         ${banner(story.year_offset ? `One Thing That Mattered This Time ${story.year_offset} Years Ago` : '&hellip; And One Thing That Mattered In The Past')}
         ${section(`
           ${muted(story.this_time_line)}
-          ${body(story.event_summary)}
-          ${muted(story.why_it_mattered)}
+          ${bulletList(story.event_summary, story.why_it_mattered)}
         `)}` : ''}
 
         <!-- Footer -->

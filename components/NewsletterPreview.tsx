@@ -119,6 +119,28 @@ function Muted({ children }: { children: React.ReactNode }) {
   )
 }
 
+function Subheading({ children }: { children: React.ReactNode }) {
+  return (
+    <p style={{ fontFamily: BODY, fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: MUTED, margin: '0 0 6px 0' }}>
+      {children}
+    </p>
+  )
+}
+
+function BulletList({ items }: { items: (string | null | undefined)[] }) {
+  const filtered = items.filter((x): x is string => !!x)
+  if (!filtered.length) return null
+  return (
+    <ul style={{ margin: '0 0 16px 0', padding: '0 0 0 18px', listStyleType: 'disc' }}>
+      {filtered.map((item, i) => (
+        <li key={i} style={{ fontFamily: BODY, fontSize: '15px', color: PRIMARY, lineHeight: 1.7, marginBottom: '8px' }}>
+          {item}
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 function CtaLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <a href={href} style={{ fontFamily: BODY, fontSize: '14px', color: SKY, textDecoration: 'underline' }} target="_blank" rel="noopener noreferrer">
@@ -191,20 +213,11 @@ export default function NewsletterPreview({
           </p>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <tbody>
-              {watch && (
-                <tr>
-                  <td style={{ padding: '9px 14px 9px 0', verticalAlign: 'middle', width: '28px', fontSize: '26px', lineHeight: 1 }}>🎬</td>
-                  <td style={{ padding: '9px 0', fontFamily: BODY, fontSize: '13px', color: PRIMARY, lineHeight: 1.5 }}><span style={{ fontWeight: 700, textTransform: 'uppercase', marginRight: '6px' }}>Watch:</span>{watch.title}</td>
-                </tr>
-              )}
               {news && (
-                <>
-                  <tr><td colSpan={2} style={{ padding: '0 16px' }}><div style={{ borderTop: '1.5px solid #C9CDD4' }} /></td></tr>
-                  <tr>
-                    <td style={{ padding: '9px 14px 9px 0', verticalAlign: 'middle', width: '28px', fontSize: '26px', lineHeight: 1 }}>📰</td>
-                    <td style={{ padding: '9px 0', fontFamily: BODY, fontSize: '13px', color: PRIMARY, lineHeight: 1.5 }}><span style={{ fontWeight: 700, textTransform: 'uppercase', marginRight: '6px' }}>Read:</span>{news.title}</td>
-                  </tr>
-                </>
+                <tr>
+                  <td style={{ padding: '9px 14px 9px 0', verticalAlign: 'middle', width: '28px', fontSize: '26px', lineHeight: 1 }}>📰</td>
+                  <td style={{ padding: '9px 0', fontFamily: BODY, fontSize: '13px', color: PRIMARY, lineHeight: 1.5 }}><span style={{ fontWeight: 700, textTransform: 'uppercase', marginRight: '6px' }}>Read:</span>{news.title}</td>
+                </tr>
               )}
               {research && (
                 <>
@@ -212,6 +225,15 @@ export default function NewsletterPreview({
                   <tr>
                     <td style={{ padding: '9px 14px 9px 0', verticalAlign: 'middle', width: '28px', fontSize: '26px', lineHeight: 1 }}>🔬</td>
                     <td style={{ padding: '9px 0', fontFamily: BODY, fontSize: '13px', color: PRIMARY, lineHeight: 1.5 }}><span style={{ fontWeight: 700, textTransform: 'uppercase', marginRight: '6px' }}>Research:</span>{research.title}</td>
+                  </tr>
+                </>
+              )}
+              {watch && (
+                <>
+                  <tr><td colSpan={2} style={{ padding: '0 16px' }}><div style={{ borderTop: '1.5px solid #C9CDD4' }} /></td></tr>
+                  <tr>
+                    <td style={{ padding: '9px 14px 9px 0', verticalAlign: 'middle', width: '28px', fontSize: '26px', lineHeight: 1 }}>🎬</td>
+                    <td style={{ padding: '9px 0', fontFamily: BODY, fontSize: '13px', color: PRIMARY, lineHeight: 1.5 }}><span style={{ fontWeight: 700, textTransform: 'uppercase', marginRight: '6px' }}>Watch:</span>{watch.title}</td>
                   </tr>
                 </>
               )}
@@ -286,27 +308,6 @@ export default function NewsletterPreview({
         </div>
       )}
 
-      {/* Watch */}
-      {watch && (
-        <>
-          <SectionBanner label="One Video That Matters" />
-          <ContentSection>
-            <ScoreBadge score={watch.fit_score} />
-            <Title>{watch.title}</Title>
-            {watch.summary && <Body>{watch.summary}</Body>}
-            {watch.why_it_matters && <Muted>{watch.why_it_matters}</Muted>}
-            {watch.thumbnail_url && (
-              <img
-                src={watch.thumbnail_url}
-                alt=""
-                style={{ display: 'block', width: '100%', maxHeight: '220px', objectFit: 'cover', marginBottom: '12px' }}
-              />
-            )}
-            <CtaLink href={watch.url}>→ Watch on YouTube</CtaLink>
-          </ContentSection>
-        </>
-      )}
-
       {/* Read */}
       {news && (
         <>
@@ -314,8 +315,8 @@ export default function NewsletterPreview({
           <ContentSection>
             <ScoreBadge score={news.fit_score} />
             <Title>{news.title}</Title>
-            {news.summary && <Body>{news.summary}</Body>}
-            {news.why_it_matters && <Muted>{news.why_it_matters}</Muted>}
+            {news.summary && (<><Subheading>Summary</Subheading><BulletList items={[news.summary]} /></>)}
+            {news.why_it_matters && (<><Subheading>Why it matters</Subheading><BulletList items={[news.why_it_matters]} /></>)}
             <CtaLink href={news.url}>→ Read the article</CtaLink>
           </ContentSection>
         </>
@@ -333,21 +334,41 @@ export default function NewsletterPreview({
                 {research.authors}
               </p>
             )}
-            {research.summary_llm && <Body>{research.summary_llm}</Body>}
-            {research.why_it_matters && <Muted>{research.why_it_matters}</Muted>}
+            {research.summary_llm && (<><Subheading>Summary</Subheading><BulletList items={[research.summary_llm]} /></>)}
+            {research.why_it_matters && (<><Subheading>Why it matters</Subheading><BulletList items={[research.why_it_matters]} /></>)}
             {research.pdf_url && <CtaLink href={research.pdf_url}>→ Read the paper</CtaLink>}
           </ContentSection>
         </>
       )}
 
-      {/* Story */}
+      {/* Watch */}
+      {watch && (
+        <>
+          <SectionBanner label="One Video That Matters" />
+          <ContentSection>
+            <ScoreBadge score={watch.fit_score} />
+            <Title>{watch.title}</Title>
+            {watch.summary && (<><Subheading>Summary</Subheading><BulletList items={[watch.summary]} /></>)}
+            {watch.why_it_matters && (<><Subheading>Why it matters</Subheading><BulletList items={[watch.why_it_matters]} /></>)}
+            {watch.thumbnail_url && (
+              <img
+                src={watch.thumbnail_url}
+                alt=""
+                style={{ display: 'block', width: '100%', maxHeight: '220px', objectFit: 'cover', marginBottom: '12px' }}
+              />
+            )}
+            <CtaLink href={watch.url}>→ Watch on YouTube</CtaLink>
+          </ContentSection>
+        </>
+      )}
+
+      {/* Reflect */}
       {story && (
         <>
           <SectionBanner label={story.year_offset ? `One Thing That Mattered This Time ${story.year_offset} Years Ago` : '… And One Thing That Mattered In The Past'} />
           <ContentSection>
             {story.this_time_line && <Muted>{story.this_time_line}</Muted>}
-            {story.event_summary && <Body>{story.event_summary}</Body>}
-            {story.why_it_mattered && <Muted>{story.why_it_mattered}</Muted>}
+            <BulletList items={[story.event_summary, story.why_it_mattered]} />
           </ContentSection>
         </>
       )}
