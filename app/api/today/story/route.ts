@@ -4,7 +4,7 @@ import type { StoryOfPastCandidate } from '@/lib/types'
 
 export async function GET(_req: NextRequest) {
   try {
-    const items = await getTodayItems<StoryOfPastCandidate>('stories_of_past_candidates', null)
+    const items = await getTodayItems<StoryOfPastCandidate>('stories_of_past_candidates', { orderField: null })
     return NextResponse.json({ success: true, data: items })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'

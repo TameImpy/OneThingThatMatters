@@ -14,19 +14,14 @@ export const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
-/** Returns today's date as YYYY-MM-DD in UTC. */
-export function getTodayDate(): string {
-  return new Date().toISOString().split('T')[0]
-}
-
 /**
- * Fetch rows from a table updated in the last 3 days (via updated_at).
- * Returns typed rows or throws on error.
+ * Fetch rows from a table updated in the last 3 days.
+ * @param dateColumn  - timestamp column to filter on (default: updated_at)
+ * @param orderField  - column to sort descending; null skips ordering (default: fit_score)
  */
 export async function getTodayItems<T>(
   table: CategoryTable,
-  orderField: string | null = 'fit_score',
-  dateColumn = 'updated_at'
+  { dateColumn = 'updated_at', orderField = 'fit_score' as string | null } = {}
 ): Promise<T[]> {
   const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
 
@@ -40,7 +35,6 @@ export async function getTodayItems<T>(
   }
 
   const { data, error } = await query
-
   if (error) throw new Error(error.message)
   return (data ?? []) as T[]
 }

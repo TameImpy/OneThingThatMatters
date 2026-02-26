@@ -4,7 +4,7 @@ import type { NewsletterDailyArt } from '@/lib/types'
 
 export async function GET(_req: NextRequest) {
   try {
-    const items = await getTodayItems<NewsletterDailyArt>('newsletter_daily_art', 'created_at', 'created_at')
+    const items = await getTodayItems<NewsletterDailyArt>('newsletter_daily_art', { dateColumn: 'created_at', orderField: 'created_at' })
     const art = items[0] ?? null
     return NextResponse.json({ success: true, data: art })
   } catch (err) {
