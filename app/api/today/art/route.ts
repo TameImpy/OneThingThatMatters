@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getTodayItems } from '@/lib/supabase'
 import type { NewsletterDailyArt } from '@/lib/types'
 
-export async function GET(req: NextRequest) {
-  const date = req.nextUrl.searchParams.get('date') ?? undefined
+export async function GET(_req: NextRequest) {
   try {
-    const items = await getTodayItems<NewsletterDailyArt>('newsletter_daily_art', 'issue_date', date)
+    const items = await getTodayItems<NewsletterDailyArt>('newsletter_daily_art', 'created_at', 'created_at')
     const art = items[0] ?? null
     return NextResponse.json({ success: true, data: art })
   } catch (err) {

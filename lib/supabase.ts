@@ -20,20 +20,26 @@ export function getTodayDate(): string {
 }
 
 /**
- * Fetch all rows from a table where dateField = the given date (defaults to today).
+ * Fetch rows from a table updated in the last 3 days (via updated_at).
  * Returns typed rows or throws on error.
  */
 export async function getTodayItems<T>(
   table: CategoryTable,
-  dateField: string,
-  date?: string
+  orderField: string | null = 'fit_score',
+  dateColumn = 'updated_at'
 ): Promise<T[]> {
-  const today = date ?? getTodayDate()
-  const { data, error } = await supabase
+  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+
+  let query = supabase
     .from(table)
     .select('*')
-    .eq(dateField, today)
-    .order('fit_score', { ascending: false, nullsFirst: false })
+    .gte(dateColumn, threeDaysAgo)
+
+  if (orderField) {
+    query = query.order(orderField, { ascending: false, nullsFirst: false })
+  }
+
+  const { data, error } = await query
 
   if (error) throw new Error(error.message)
   return (data ?? []) as T[]

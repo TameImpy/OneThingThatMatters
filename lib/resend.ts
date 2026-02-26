@@ -23,6 +23,7 @@ interface IssueData {
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr + 'T12:00:00Z').toLocaleDateString('en-US', {
+    weekday: 'long',
     month: 'long',
     day: 'numeric',
     year: 'numeric',
@@ -34,109 +35,126 @@ export function renderNewsletterHTML(data: IssueData): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://onethingmatters.com'
 
   const c = {
-    navy950: '#0B0F1A',
-    navy900: '#111827',
-    navy800: '#1E2A3A',
-    cyan400: '#22D3EE',
-    cyan100: '#CFFAFE',
+    ink: '#111827',
+    accent: '#E8522E',
+    sky: '#0EA5E9',
     white: '#FFFFFF',
-    amber400: '#FBBF24',
+    textPrimary: '#1A1A1A',
+    textMuted: '#6B7280',
   }
 
+  const f = {
+    display: `'Barlow Condensed',Impact,'Arial Narrow',sans-serif`,
+    body: `Georgia,'Times New Roman',serif`,
+  }
+
+  // Full-bleed coral section banner — 36px Barlow Condensed 900 italic
+  const banner = (label: string) =>
+    `<tr><td style="background:${c.accent};padding:18px 32px;text-align:center;">
+      <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:36px;text-transform:uppercase;letter-spacing:-0.01em;line-height:1;color:${c.white};margin:0;">&#9670;&nbsp;${label}</p>
+    </td></tr>`
+
+  // Plain white content row — no card border, no inner table
   const section = (content: string) =>
-    `<tr><td style="border-bottom:1px solid ${c.navy800};padding:24px 32px;">${content}</td></tr>`
+    `<tr><td style="background:${c.white};padding:24px 32px;">${content}</td></tr>`
 
-  const label = (icon: string, text: string) =>
-    `<p style="font-family:monospace;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:${c.cyan400};margin:0 0 8px 0;">${icon} ${text}</p>`
+  const scoreBadge = (score: number | null) =>
+    score != null
+      ? `<span style="display:inline-block;background:${c.sky};color:${c.white};font-family:${f.body};font-size:11px;font-weight:700;letter-spacing:0.04em;padding:3px 10px;border-radius:999px;margin-bottom:10px;">${score}/10</span>`
+      : ''
 
-  const heading = (text: string) =>
-    `<p style="font-size:16px;font-weight:700;color:${c.white};margin:0 0 6px 0;line-height:1.3;">${text}</p>`
+  const title = (text: string) =>
+    `<p style="font-family:${f.body};font-size:18px;font-weight:700;color:${c.textPrimary};margin:0 0 12px 0;line-height:1.35;">${text}</p>`
 
   const body = (text: string | null) =>
     text
-      ? `<p style="font-size:13px;color:${c.cyan100};opacity:0.7;margin:0 0 6px 0;line-height:1.6;">${text}</p>`
+      ? `<p style="font-family:${f.body};font-size:16px;color:${c.textPrimary};margin:0 0 16px 0;line-height:1.7;">${text}</p>`
       : ''
 
-  const italic = (text: string | null) =>
+  const muted = (text: string | null) =>
     text
-      ? `<p style="font-size:12px;color:${c.cyan100};opacity:0.5;font-style:italic;margin:0 0 10px 0;">${text}</p>`
+      ? `<p style="font-family:${f.body};font-size:13px;color:${c.textMuted};font-style:italic;margin:0 0 12px 0;line-height:1.5;">${text}</p>`
+      : ''
+
+  const authors = (text: string | null) =>
+    text
+      ? `<p style="font-family:${f.body};font-size:13px;color:${c.textMuted};margin:0 0 12px 0;">${text}</p>`
       : ''
 
   const cta = (href: string, text: string) =>
-    `<a href="${href}" style="font-size:12px;color:${c.cyan400};text-decoration:underline;">${text}</a>`
+    `<a href="${href}" style="font-family:${f.body};font-size:14px;color:${c.sky};text-decoration:underline;">${text}</a>`
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>One Thing That Matters · ${formatDate(issue_date)}</title>
+  <title>One Thing That Matters &middot; ${formatDate(issue_date)}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,900&display=swap" rel="stylesheet">
 </head>
-<body style="margin:0;padding:0;background:${c.navy950};">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-    <tr><td align="center" style="padding:32px 16px;">
-      <table role="presentation" width="600" style="max-width:600px;width:100%;background:${c.navy900};border-radius:8px;overflow:hidden;border:1px solid ${c.navy800};">
+<body style="margin:0;padding:0;background:${c.white};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${c.white};">
+    <tr><td align="center">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
-        <!-- Header -->
-        <tr><td style="background:${c.navy950};padding:24px 32px;text-align:center;border-bottom:1px solid ${c.navy800};">
-          <p style="font-family:monospace;font-size:11px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:${c.cyan400};margin:0 0 4px 0;">One Thing That Matters</p>
-          <p style="font-size:12px;color:${c.cyan100};opacity:0.4;margin:0;">${formatDate(issue_date)}</p>
+        <!-- Masthead -->
+        <tr><td style="background:${c.ink};padding:28px 32px;text-align:center;">
+          <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:48px;text-transform:uppercase;letter-spacing:-0.02em;line-height:1;color:${c.white};margin:0 0 8px 0;">One Thing That Matters</p>
+          <p style="font-family:${f.body};font-size:13px;color:${c.textMuted};margin:0;">${formatDate(issue_date)}</p>
         </td></tr>
 
         ${art ? `
-        <!-- Art -->
-        <tr><td style="border-bottom:1px solid ${c.navy800};">
-          <img src="${art.image_url}" alt="${art.caption ?? ''}" width="600" style="display:block;width:100%;max-height:240px;object-fit:cover;">
-          ${art.caption || art.artist_name ? `<p style="font-size:11px;color:${c.cyan100};opacity:0.4;font-style:italic;margin:0;padding:8px 32px;">${art.caption ?? ''}${art.artist_name ? ` — ${art.artist_name}` : ''}</p>` : ''}
+        <!-- Art block -->
+        <tr><td style="background:${c.white};padding:0;">
+          <img src="${art.image_url}" alt="${art.caption ?? ''}" width="600" style="display:block;width:100%;max-height:260px;object-fit:cover;">
+          ${art.caption || art.artist_name ? `<p style="font-family:${f.body};font-size:13px;color:${c.textMuted};font-style:italic;margin:0;padding:8px 32px;">${art.caption ?? ''}${art.artist_name ? ` &mdash; ${art.artist_name}` : ''}</p>` : ''}
         </td></tr>` : ''}
 
-        ${story ? section(`
-          ${label('◈', 'On This Day')}
-          ${heading(story.this_time_line)}
+        ${story ? `
+        ${banner('Story of the Week')}
+        ${section(`
+          ${muted(story.this_time_line)}
           ${body(story.event_summary)}
-          ${italic(story.why_it_mattered)}
-        `) : ''}
+          ${muted(story.why_it_mattered)}
+        `)}` : ''}
 
-        ${watch || news || research ? section(`
-          ${label('', "Today's Picks")}
-          <ul style="margin:0;padding:0 0 0 16px;list-style:disc;">
-            ${watch ? `<li style="font-size:12px;color:${c.cyan100};opacity:0.7;margin-bottom:4px;"><span style="color:${c.cyan400};">▶ Watch:</span> ${watch.title}</li>` : ''}
-            ${news ? `<li style="font-size:12px;color:${c.cyan100};opacity:0.7;margin-bottom:4px;"><span style="color:${c.cyan400};">◉ Read:</span> ${news.title}</li>` : ''}
-            ${research ? `<li style="font-size:12px;color:${c.cyan100};opacity:0.7;"><span style="color:${c.cyan400};">◎ Research:</span> ${research.title}</li>` : ''}
-          </ul>
-        `) : ''}
-
-        ${watch ? section(`
-          ${label('▶', `Watch — ${watch.channel_name}`)}
-          ${heading(watch.title)}
+        ${watch ? `
+        ${banner('Watch')}
+        ${section(`
+          ${scoreBadge(watch.fit_score)}
+          ${title(watch.title)}
           ${body(watch.summary)}
-          ${italic(watch.why_it_matters)}
-          ${watch.thumbnail_url ? `<img src="${watch.thumbnail_url}" alt="" width="536" style="display:block;width:100%;max-height:160px;object-fit:cover;border-radius:4px;margin-bottom:10px;">` : ''}
-          ${cta(watch.url, 'Watch →')}
-        `) : ''}
+          ${muted(watch.why_it_matters)}
+          ${watch.thumbnail_url ? `<img src="${watch.thumbnail_url}" alt="" width="536" style="display:block;width:100%;max-height:220px;object-fit:cover;margin-bottom:12px;">` : ''}
+          ${cta(watch.url, '&rarr; Watch on YouTube')}
+        `)}` : ''}
 
-        ${news ? section(`
-          ${label('◉', `Read — ${news.source}`)}
-          ${heading(news.title)}
+        ${news ? `
+        ${banner('Read')}
+        ${section(`
+          ${scoreBadge(news.fit_score)}
+          ${title(news.title)}
           ${body(news.summary)}
-          ${italic(news.why_it_matters)}
-          ${cta(news.url, 'Read →')}
-        `) : ''}
+          ${muted(news.why_it_matters)}
+          ${cta(news.url, '&rarr; Read the article')}
+        `)}` : ''}
 
-        ${research ? section(`
-          ${label('◎', 'Research')}
-          ${heading(research.title)}
-          ${research.authors ? `<p style="font-size:11px;color:${c.cyan100};opacity:0.35;margin:0 0 8px 0;">${research.authors}</p>` : ''}
+        ${research ? `
+        ${banner('Research')}
+        ${section(`
+          ${scoreBadge(research.fit_score)}
+          ${title(research.title)}
+          ${authors(research.authors ?? null)}
           ${body(research.summary_llm)}
-          ${italic(research.why_it_matters)}
-          ${research.pdf_url ? cta(research.pdf_url, 'Read Paper →') : ''}
-        `) : ''}
+          ${muted(research.why_it_matters)}
+          ${research.pdf_url ? cta(research.pdf_url, '&rarr; Read the paper') : ''}
+        `)}` : ''}
 
         <!-- Footer -->
-        <tr><td style="padding:20px 32px;text-align:center;">
-          <p style="font-size:11px;color:${c.cyan100};opacity:0.25;margin:0;">
-            <a href="${appUrl}/unsubscribe?email={{email}}" style="color:inherit;">Unsubscribe</a>
-            &nbsp;·&nbsp;One Thing That Matters
+        <tr><td style="background:${c.ink};padding:20px 32px;text-align:center;">
+          <p style="font-family:${f.body};font-size:12px;color:${c.textMuted};margin:0;">
+            <a href="${appUrl}/unsubscribe?email={{email}}" style="color:${c.textMuted};text-decoration:underline;">Unsubscribe</a>
+            &nbsp;&middot;&nbsp;One Thing That Matters
           </p>
         </td></tr>
 
