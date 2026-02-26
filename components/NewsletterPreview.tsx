@@ -127,10 +127,10 @@ export default function NewsletterPreview({
   const isEmpty = !watch && !news && !research && !story
 
   return (
-    <div style={{ background: '#FFFFFF', maxWidth: '600px', width: '100%', margin: '0 auto', fontFamily: BODY }}>
+    <div style={{ background: '#FFFFFF', maxWidth: '600px', width: '100%', margin: '0 auto', fontFamily: BODY, overflow: 'hidden', borderRadius: '8px' }}>
 
       {/* Masthead */}
-      <div style={{ background: INK, padding: '18px 32px 14px 32px', textAlign: 'center' }}>
+      <div style={{ background: INK, padding: '18px 32px 14px 32px', textAlign: 'center', border: '5px solid #735E53', borderRadius: '8px' }}>
         <p style={{
           fontFamily: DISPLAY,
           fontWeight: 900,
