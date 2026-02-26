@@ -19,7 +19,7 @@ interface NewsletterPreviewProps {
 
 const DISPLAY = "'Barlow Condensed', Impact, 'Arial Narrow', sans-serif"
 const BODY = "Georgia, 'Times New Roman', serif"
-const INK = '#111827'
+const INK = '#537367'
 const ACCENT = '#E8522E'
 const SKY = '#0EA5E9'
 const MUTED = '#6B7280'

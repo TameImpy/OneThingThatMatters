@@ -35,7 +35,7 @@ export function renderNewsletterHTML(data: IssueData): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://onethingmatters.com'
 
   const c = {
-    ink: '#111827',
+    ink: '#537367',
     accent: '#E8522E',
     sky: '#0EA5E9',
     white: '#FFFFFF',
