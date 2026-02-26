@@ -142,7 +142,7 @@ export default function NewsletterPreview({
         }}>
           One Thing That Matters
         </p>
-        <p style={{ fontFamily: BODY, fontSize: '13px', color: MUTED, margin: 0 }}>
+        <p style={{ fontFamily: BODY, fontSize: '13px', color: '#FFFFFF', opacity: 0.75, margin: 0 }}>
           {formatDate(issueDate)}
         </p>
       </div>
