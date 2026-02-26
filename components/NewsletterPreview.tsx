@@ -11,6 +11,7 @@ import type {
 interface NewsletterPreviewProps {
   issueDate: string
   issueNumber?: number
+  pov: string | null
   watch: WatchCandidate | null
   news: AiNewsTop5 | null
   research: AiPaperCandidate | null
@@ -118,6 +119,7 @@ function CtaLink({ href, children }: { href: string; children: React.ReactNode }
 export default function NewsletterPreview({
   issueDate,
   issueNumber,
+  pov,
   watch,
   news,
   research,
@@ -169,6 +171,28 @@ export default function NewsletterPreview({
           </p>
         </div>
       </div>
+
+      {/* My POV Today */}
+      {pov && (
+        <>
+          <div style={{ background: ACCENT, padding: '12px 32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+              <p style={{ fontFamily: DISPLAY, fontWeight: 900, fontStyle: 'italic', fontSize: '30px', textTransform: 'uppercase', color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
+                ← My POV
+              </p>
+              <div style={{ flexShrink: 0, width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', border: '3px solid rgba(255,255,255,0.8)' }}>
+                <img src="/me.jpg" alt="Matt" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+              <p style={{ fontFamily: DISPLAY, fontWeight: 900, fontStyle: 'italic', fontSize: '30px', textTransform: 'uppercase', color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
+                Today →
+              </p>
+            </div>
+          </div>
+          <ContentSection>
+            <Body>{pov}</Body>
+          </ContentSection>
+        </>
+      )}
 
       {/* Art */}
       {art && (

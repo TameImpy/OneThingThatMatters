@@ -34,6 +34,7 @@ export default function NewsletterPage({ params }: PageProps) {
   })
   const [art, setArt] = useState<NewsletterDailyArt | null>(null)
   const [issueNumber, setIssueNumber] = useState<number>(1)
+  const [pov, setPov] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished] = useState(false)
@@ -89,6 +90,7 @@ export default function NewsletterPage({ params }: PageProps) {
           issue_date: date,
           picks,
           art_id: art?.id ?? null,
+          pov: pov.trim() || null,
         }),
       })
       const data = await res.json()
@@ -161,15 +163,30 @@ export default function NewsletterPage({ params }: PageProps) {
         )}
 
         {!loading && (
-          <NewsletterPreview
-            issueDate={date}
-            issueNumber={issueNumber}
-            watch={picks.watch}
-            news={picks.news}
-            research={picks.research}
-            story={picks.story}
-            art={art}
-          />
+          <>
+            <div className="mb-6">
+              <label className="block text-xs font-bold uppercase tracking-widest text-cyan-400 mb-2">
+                My POV Today
+              </label>
+              <textarea
+                value={pov}
+                onChange={e => setPov(e.target.value)}
+                placeholder="Write your take on today's AI signal…"
+                rows={4}
+                className="w-full rounded border border-navy-800 bg-navy-900 px-4 py-3 text-sm text-cyan-100 placeholder-cyan-100/30 focus:outline-none focus:border-cyan-400/50 resize-none"
+              />
+            </div>
+            <NewsletterPreview
+              issueDate={date}
+              issueNumber={issueNumber}
+              pov={pov.trim() || null}
+              watch={picks.watch}
+              news={picks.news}
+              research={picks.research}
+              story={picks.story}
+              art={art}
+            />
+          </>
         )}
       </div>
     </div>

@@ -15,6 +15,7 @@ export const resend = new Resend(resendApiKey)
 interface IssueData {
   issue_date: string
   issueNumber?: number
+  pov?: string | null
   watch: WatchCandidate | null
   news: AiNewsTop5 | null
   research: AiPaperCandidate | null
@@ -32,7 +33,7 @@ function formatDate(dateStr: string): string {
 }
 
 export function renderNewsletterHTML(data: IssueData): string {
-  const { issue_date, issueNumber, watch, news, research, story, art } = data
+  const { issue_date, issueNumber, pov, watch, news, research, story, art } = data
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://onethingmatters.com'
 
   const c = {
@@ -116,6 +117,25 @@ export function renderNewsletterHTML(data: IssueData): string {
             </tr>
           </table>
         </td></tr>
+
+        ${pov ? `
+        <!-- My POV Today -->
+        <tr><td style="background:${c.accent};padding:12px 32px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="vertical-align:middle;text-align:left;width:40%;">
+                <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:30px;text-transform:uppercase;color:${c.white};margin:0;letter-spacing:-0.01em;white-space:nowrap;">&larr; My POV</p>
+              </td>
+              <td style="vertical-align:middle;text-align:center;width:20%;">
+                <img src="${appUrl}/me.jpg" alt="Matt" width="64" height="64" style="display:inline-block;width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.8);">
+              </td>
+              <td style="vertical-align:middle;text-align:right;width:40%;">
+                <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:30px;text-transform:uppercase;color:${c.white};margin:0;letter-spacing:-0.01em;white-space:nowrap;">Today &rarr;</p>
+              </td>
+            </tr>
+          </table>
+        </td></tr>
+        ${section(body(pov))}` : ''}
 
         ${art ? `
         <!-- Art block -->
