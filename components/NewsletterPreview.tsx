@@ -11,7 +11,7 @@ import type {
 interface NewsletterPreviewProps {
   issueDate: string
   issueNumber?: number
-  pov: string | null
+  pov?: string | null
   watch: WatchCandidate | null
   news: AiNewsTop5 | null
   research: AiPaperCandidate | null
@@ -372,6 +372,17 @@ export default function NewsletterPreview({
           </ContentSection>
         </>
       )}
+
+      {/* Quote of the Day */}
+      <SectionBanner label="Quote of the Day" />
+      <ContentSection>
+        <p style={{ fontFamily: BODY, fontSize: '18px', fontStyle: 'italic', color: PRIMARY, lineHeight: 1.6, margin: '0 0 12px 0' }}>
+          &ldquo;Placeholder quote goes here.&rdquo;
+        </p>
+        <p style={{ fontFamily: BODY, fontSize: '13px', color: MUTED, margin: 0 }}>
+          &mdash; Author Name
+        </p>
+      </ContentSection>
 
       {/* Footer */}
       <div style={{ background: INK, padding: '20px 32px', textAlign: 'center' }}>
