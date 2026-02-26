@@ -38,8 +38,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Render HTML
+    const { count: issueCount } = await supabase
+      .from('newsletter_issues')
+      .select('*', { count: 'exact', head: true })
+
     const html = renderNewsletterHTML({
       issue_date,
+      issueNumber: (issueCount ?? 0) + 1,
       watch: picks.watch,
       news: picks.news,
       research: picks.research,

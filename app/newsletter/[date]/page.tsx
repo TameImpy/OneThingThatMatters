@@ -33,6 +33,7 @@ export default function NewsletterPage({ params }: PageProps) {
     story: null,
   })
   const [art, setArt] = useState<NewsletterDailyArt | null>(null)
+  const [issueNumber, setIssueNumber] = useState<number>(1)
   const [loading, setLoading] = useState(true)
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished] = useState(false)
@@ -42,15 +43,16 @@ export default function NewsletterPage({ params }: PageProps) {
     async function fetchAll() {
       try {
         const qs = `?date=${date}`
-        const [wRes, nRes, rRes, sRes, aRes] = await Promise.all([
+        const [wRes, nRes, rRes, sRes, aRes, iRes] = await Promise.all([
           fetch(`/api/today/watch${qs}`),
           fetch(`/api/today/news${qs}`),
           fetch(`/api/today/research${qs}`),
           fetch(`/api/today/story${qs}`),
           fetch(`/api/today/art${qs}`),
+          fetch('/api/newsletter/issue-count'),
         ])
-        const [wData, nData, rData, sData, aData] = await Promise.all([
-          wRes.json(), nRes.json(), rRes.json(), sRes.json(), aRes.json(),
+        const [wData, nData, rData, sData, aData, iData] = await Promise.all([
+          wRes.json(), nRes.json(), rRes.json(), sRes.json(), aRes.json(), iRes.json(),
         ])
 
         // Use already-picked items if available
@@ -66,6 +68,7 @@ export default function NewsletterPage({ params }: PageProps) {
           story: pickedStory,
         })
         if (aData.success) setArt(aData.data)
+        setIssueNumber((iData.count ?? 0) + 1)
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to load')
       } finally {
@@ -160,6 +163,7 @@ export default function NewsletterPage({ params }: PageProps) {
         {!loading && (
           <NewsletterPreview
             issueDate={date}
+            issueNumber={issueNumber}
             watch={picks.watch}
             news={picks.news}
             research={picks.research}

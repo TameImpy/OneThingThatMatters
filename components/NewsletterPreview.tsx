@@ -10,6 +10,7 @@ import type {
 
 interface NewsletterPreviewProps {
   issueDate: string
+  issueNumber?: number
   watch: WatchCandidate | null
   news: AiNewsTop5 | null
   research: AiPaperCandidate | null
@@ -116,6 +117,7 @@ function CtaLink({ href, children }: { href: string; children: React.ReactNode }
 
 export default function NewsletterPreview({
   issueDate,
+  issueNumber,
   watch,
   news,
   research,
@@ -125,10 +127,10 @@ export default function NewsletterPreview({
   const isEmpty = !watch && !news && !research && !story
 
   return (
-    <div style={{ background: '#FFFFFF', maxWidth: '600px', width: '100%', margin: '0 auto' }}>
+    <div style={{ background: '#FFFFFF', maxWidth: '600px', width: '100%', margin: '0 auto', fontFamily: BODY }}>
 
       {/* Masthead */}
-      <div style={{ background: INK, padding: '28px 32px', textAlign: 'center' }}>
+      <div style={{ background: INK, padding: '28px 32px 20px 32px', textAlign: 'center' }}>
         <p style={{
           fontFamily: DISPLAY,
           fontWeight: 900,
@@ -142,12 +144,27 @@ export default function NewsletterPreview({
         }}>
           One Thing That Matters
         </p>
-        <p style={{ fontFamily: BODY, fontSize: '14px', color: '#FFFFFF', opacity: 0.9, margin: '0 0 6px 0' }}>
+        <p style={{ fontFamily: BODY, fontSize: '14px', color: '#FFFFFF', opacity: 0.9, margin: '0 0 16px 0' }}>
           One signal in AI. Every day. Every Angle.
         </p>
-        <p style={{ fontFamily: BODY, fontSize: '13px', color: '#FFFFFF', opacity: 0.75, margin: 0 }}>
-          {formatDate(issueDate)}
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+          <span style={{
+            display: 'inline-block',
+            transform: 'rotate(-5deg)',
+            transformOrigin: 'left bottom',
+            fontFamily: DISPLAY,
+            fontWeight: 900,
+            fontSize: '52px',
+            color: '#FFFFFF',
+            opacity: 0.85,
+            lineHeight: 1,
+          }}>
+            №{issueNumber ?? '—'}
+          </span>
+          <p style={{ fontFamily: BODY, fontSize: '13px', color: '#FFFFFF', opacity: 0.75, margin: 0 }}>
+            {formatDate(issueDate)}
+          </p>
+        </div>
       </div>
 
       {/* Art */}
