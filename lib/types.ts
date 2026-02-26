@@ -37,6 +37,7 @@ export interface AiNewsTop5 {
   picked: boolean
   picked_at: string | null
   created_at: string
+  updated_at: string
 }
 
 // ─── Research (AI Papers) ─────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ export interface StoryOfPastCandidate {
   this_time_line: string
   event_summary: string
   why_it_mattered: string
+  year_offset: number | null
   fit_score: number | null
   selected: boolean
   created_at: string

@@ -62,6 +62,7 @@ function TodayDashboard() {
         ])
         if (wData.success) setWatches(wData.data)
         if (nData.success) setNews(nData.data)
+        else setError(`News: ${nData.error}`)
         if (rData.success) setResearch(rData.data)
         if (sData.success) setStories(sData.data)
         if (aData.success) setArt(aData.data)

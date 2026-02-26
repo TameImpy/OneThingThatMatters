@@ -27,6 +27,17 @@ const SKY = '#0EA5E9'
 const MUTED = '#6B7280'
 const PRIMARY = '#1A1A1A'
 
+function stripUrls(text: string | null | undefined): string {
+  if (!text) return ''
+  return text.replace(/\(?\s*https?:\/\/\S+\s*\)?/g, '').replace(/\s+/g, ' ').trim()
+}
+
+function firstSentence(text: string | null | undefined): string {
+  if (!text) return ''
+  const match = text.match(/^[^.!?]+[.!?]/)
+  return match ? match[0].trim() : text.slice(0, 140)
+}
+
 function formatDate(dateStr: string): string {
   return new Date(dateStr + 'T12:00:00Z').toLocaleDateString('en-US', {
     weekday: 'long',
@@ -172,6 +183,52 @@ export default function NewsletterPreview({
         </div>
       </div>
 
+      {/* Today's Things */}
+      {(watch || news || research || story) && (
+        <div style={{ background: '#FFFFFF', padding: '20px 32px 8px 32px', borderBottom: '1px solid #E5E7EB' }}>
+          <p style={{ fontFamily: DISPLAY, fontWeight: 900, fontStyle: 'italic', fontSize: '20px', textTransform: 'uppercase', letterSpacing: '0.02em', color: INK, margin: '0 0 12px 0' }}>
+            Today&apos;s Things
+          </p>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <tbody>
+              {watch && (
+                <tr>
+                  <td style={{ padding: '9px 14px 9px 0', verticalAlign: 'middle', width: '28px', fontSize: '26px', lineHeight: 1 }}>🎬</td>
+                  <td style={{ padding: '9px 0', fontFamily: BODY, fontSize: '13px', color: PRIMARY, lineHeight: 1.5 }}><span style={{ fontWeight: 700, textTransform: 'uppercase', marginRight: '6px' }}>Watch:</span>{watch.title}</td>
+                </tr>
+              )}
+              {news && (
+                <>
+                  <tr><td colSpan={2} style={{ padding: '0 16px' }}><div style={{ borderTop: '1.5px solid #C9CDD4' }} /></td></tr>
+                  <tr>
+                    <td style={{ padding: '9px 14px 9px 0', verticalAlign: 'middle', width: '28px', fontSize: '26px', lineHeight: 1 }}>📰</td>
+                    <td style={{ padding: '9px 0', fontFamily: BODY, fontSize: '13px', color: PRIMARY, lineHeight: 1.5 }}><span style={{ fontWeight: 700, textTransform: 'uppercase', marginRight: '6px' }}>Read:</span>{news.title}</td>
+                  </tr>
+                </>
+              )}
+              {research && (
+                <>
+                  <tr><td colSpan={2} style={{ padding: '0 16px' }}><div style={{ borderTop: '1.5px solid #C9CDD4' }} /></td></tr>
+                  <tr>
+                    <td style={{ padding: '9px 14px 9px 0', verticalAlign: 'middle', width: '28px', fontSize: '26px', lineHeight: 1 }}>🔬</td>
+                    <td style={{ padding: '9px 0', fontFamily: BODY, fontSize: '13px', color: PRIMARY, lineHeight: 1.5 }}><span style={{ fontWeight: 700, textTransform: 'uppercase', marginRight: '6px' }}>Research:</span>{research.title}</td>
+                  </tr>
+                </>
+              )}
+              {story && (
+                <>
+                  <tr><td colSpan={2} style={{ padding: '0 16px' }}><div style={{ borderTop: '1.5px solid #C9CDD4' }} /></td></tr>
+                  <tr>
+                    <td style={{ padding: '9px 14px 9px 0', verticalAlign: 'middle', width: '28px', fontSize: '26px', lineHeight: 1 }}>🕰️</td>
+                    <td style={{ padding: '9px 0', fontFamily: BODY, fontSize: '13px', color: PRIMARY, lineHeight: 1.5 }}><span style={{ fontWeight: 700, textTransform: 'uppercase', marginRight: '6px' }}>Reflect:</span>{stripUrls(story.this_time_line)}</td>
+                  </tr>
+                </>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {/* My POV Today */}
       {pov && (
         <>
@@ -229,22 +286,10 @@ export default function NewsletterPreview({
         </div>
       )}
 
-      {/* Story */}
-      {story && (
-        <>
-          <SectionBanner label="Story of the Week" />
-          <ContentSection>
-            {story.this_time_line && <Muted>{story.this_time_line}</Muted>}
-            {story.event_summary && <Body>{story.event_summary}</Body>}
-            {story.why_it_mattered && <Muted>{story.why_it_mattered}</Muted>}
-          </ContentSection>
-        </>
-      )}
-
       {/* Watch */}
       {watch && (
         <>
-          <SectionBanner label="Watch" />
+          <SectionBanner label="One Video That Matters" />
           <ContentSection>
             <ScoreBadge score={watch.fit_score} />
             <Title>{watch.title}</Title>
@@ -265,7 +310,7 @@ export default function NewsletterPreview({
       {/* Read */}
       {news && (
         <>
-          <SectionBanner label="Read" />
+          <SectionBanner label="One Article That Matters" />
           <ContentSection>
             <ScoreBadge score={news.fit_score} />
             <Title>{news.title}</Title>
@@ -279,7 +324,7 @@ export default function NewsletterPreview({
       {/* Research */}
       {research && (
         <>
-          <SectionBanner label="Research" />
+          <SectionBanner label="One Paper That Matters" />
           <ContentSection>
             <ScoreBadge score={research.fit_score} />
             <Title>{research.title}</Title>
@@ -291,6 +336,18 @@ export default function NewsletterPreview({
             {research.summary_llm && <Body>{research.summary_llm}</Body>}
             {research.why_it_matters && <Muted>{research.why_it_matters}</Muted>}
             {research.pdf_url && <CtaLink href={research.pdf_url}>→ Read the paper</CtaLink>}
+          </ContentSection>
+        </>
+      )}
+
+      {/* Story */}
+      {story && (
+        <>
+          <SectionBanner label={story.year_offset ? `One Thing That Mattered This Time ${story.year_offset} Years Ago` : '… And One Thing That Mattered In The Past'} />
+          <ContentSection>
+            {story.this_time_line && <Muted>{story.this_time_line}</Muted>}
+            {story.event_summary && <Body>{story.event_summary}</Body>}
+            {story.why_it_mattered && <Muted>{story.why_it_mattered}</Muted>}
           </ContentSection>
         </>
       )}

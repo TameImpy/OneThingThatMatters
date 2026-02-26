@@ -32,6 +32,17 @@ function formatDate(dateStr: string): string {
   })
 }
 
+function stripUrls(text: string | null | undefined): string {
+  if (!text) return ''
+  return text.replace(/\(?\s*https?:\/\/\S+\s*\)?/g, '').replace(/\s+/g, ' ').trim()
+}
+
+function firstSentence(text: string | null | undefined): string {
+  if (!text) return ''
+  const match = text.match(/^[^.!?]+[.!?]/)
+  return match ? match[0].trim() : text.slice(0, 140)
+}
+
 export function renderNewsletterHTML(data: IssueData): string {
   const { issue_date, issueNumber, pov, watch, news, research, story, art } = data
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://onethingmatters.com'
@@ -118,6 +129,18 @@ export function renderNewsletterHTML(data: IssueData): string {
           </table>
         </td></tr>
 
+        ${(watch || news || research || story) ? `
+        <!-- Today's Things -->
+        <tr><td style="background:#FFFFFF;padding:20px 32px 8px 32px;border-bottom:1px solid #E5E7EB;">
+          <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:20px;text-transform:uppercase;letter-spacing:0.02em;color:#537367;margin:0 0 12px 0;">Today&rsquo;s Things</p>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+            ${watch ? `<tr><td style="padding:9px 14px 9px 0;vertical-align:middle;width:28px;font-size:26px;line-height:1;">&#127916;</td><td style="padding:9px 0;font-family:${f.body};font-size:13px;color:#1A1A1A;line-height:1.5;"><span style="font-weight:700;text-transform:uppercase;margin-right:6px;">Watch:</span>${watch.title}</td></tr>` : ''}
+            ${news ? `<tr><td colspan="2" style="padding:0 16px;"><div style="border-top:1px solid #C9CDD4;font-size:0;line-height:0;">&nbsp;</div></td></tr><tr><td style="padding:9px 14px 9px 0;vertical-align:middle;width:28px;font-size:26px;line-height:1;">&#128240;</td><td style="padding:9px 0;font-family:${f.body};font-size:13px;color:#1A1A1A;line-height:1.5;"><span style="font-weight:700;text-transform:uppercase;margin-right:6px;">Read:</span>${news.title}</td></tr>` : ''}
+            ${research ? `<tr><td colspan="2" style="padding:0 16px;"><div style="border-top:1px solid #C9CDD4;font-size:0;line-height:0;">&nbsp;</div></td></tr><tr><td style="padding:9px 14px 9px 0;vertical-align:middle;width:28px;font-size:26px;line-height:1;">&#128300;</td><td style="padding:9px 0;font-family:${f.body};font-size:13px;color:#1A1A1A;line-height:1.5;"><span style="font-weight:700;text-transform:uppercase;margin-right:6px;">Research:</span>${research.title}</td></tr>` : ''}
+            ${story ? `<tr><td colspan="2" style="padding:0 16px;"><div style="border-top:1px solid #C9CDD4;font-size:0;line-height:0;">&nbsp;</div></td></tr><tr><td style="padding:9px 14px 9px 0;vertical-align:middle;width:28px;font-size:26px;line-height:1;">&#128368;</td><td style="padding:9px 0;font-family:${f.body};font-size:13px;color:#1A1A1A;line-height:1.5;"><span style="font-weight:700;text-transform:uppercase;margin-right:6px;">Reflect:</span>${stripUrls(story.this_time_line)}</td></tr>` : ''}
+          </table>
+        </td></tr>` : ''}
+
         ${pov ? `
         <!-- My POV Today -->
         <tr><td style="background:${c.accent};padding:12px 32px;">
@@ -146,16 +169,8 @@ export function renderNewsletterHTML(data: IssueData): string {
           ${art.caption || art.artist_name ? `<p style="font-family:${f.body};font-size:13px;color:${c.textMuted};font-style:italic;margin:0;padding:8px 32px;">${art.caption ?? ''}${art.artist_name ? ` &mdash; ${art.artist_name}` : ''}</p>` : ''}
         </td></tr>` : ''}
 
-        ${story ? `
-        ${banner('Story of the Week')}
-        ${section(`
-          ${muted(story.this_time_line)}
-          ${body(story.event_summary)}
-          ${muted(story.why_it_mattered)}
-        `)}` : ''}
-
         ${watch ? `
-        ${banner('Watch')}
+        ${banner('One Video That Matters')}
         ${section(`
           ${scoreBadge(watch.fit_score)}
           ${title(watch.title)}
@@ -166,7 +181,7 @@ export function renderNewsletterHTML(data: IssueData): string {
         `)}` : ''}
 
         ${news ? `
-        ${banner('Read')}
+        ${banner('One Article That Matters')}
         ${section(`
           ${scoreBadge(news.fit_score)}
           ${title(news.title)}
@@ -176,7 +191,7 @@ export function renderNewsletterHTML(data: IssueData): string {
         `)}` : ''}
 
         ${research ? `
-        ${banner('Research')}
+        ${banner('One Paper That Matters')}
         ${section(`
           ${scoreBadge(research.fit_score)}
           ${title(research.title)}
@@ -184,6 +199,14 @@ export function renderNewsletterHTML(data: IssueData): string {
           ${body(research.summary_llm)}
           ${muted(research.why_it_matters)}
           ${research.pdf_url ? cta(research.pdf_url, '&rarr; Read the paper') : ''}
+        `)}` : ''}
+
+        ${story ? `
+        ${banner(story.year_offset ? `One Thing That Mattered This Time ${story.year_offset} Years Ago` : '&hellip; And One Thing That Mattered In The Past')}
+        ${section(`
+          ${muted(story.this_time_line)}
+          ${body(story.event_summary)}
+          ${muted(story.why_it_mattered)}
         `)}` : ''}
 
         <!-- Footer -->
