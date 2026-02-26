@@ -177,15 +177,27 @@ export default function NewsletterPreview({
         <>
           <div style={{ background: ACCENT, padding: '12px 32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-              <p style={{ fontFamily: DISPLAY, fontWeight: 900, fontStyle: 'italic', fontSize: '30px', textTransform: 'uppercase', color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
-                ← My POV
-              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                <p style={{ fontFamily: DISPLAY, fontWeight: 900, fontStyle: 'italic', fontSize: '30px', textTransform: 'uppercase', color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
+                  My POV
+                </p>
+                <svg width="65" height="58" viewBox="0 0 65 58" fill="none">
+                  <path d="M 5 8 C 40 8 57 18 57 52" stroke="white" strokeWidth="6" strokeLinecap="round"/>
+                  <path d="M 49 44 L 57 52 L 65 44" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
               <div style={{ flexShrink: 0, width: '64px', height: '64px', borderRadius: '50%', overflow: 'hidden', border: '3px solid rgba(255,255,255,0.8)' }}>
                 <img src="/me.jpg" alt="Matt" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
-              <p style={{ fontFamily: DISPLAY, fontWeight: 900, fontStyle: 'italic', fontSize: '30px', textTransform: 'uppercase', color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
-                Today →
-              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                <p style={{ fontFamily: DISPLAY, fontWeight: 900, fontStyle: 'italic', fontSize: '30px', textTransform: 'uppercase', color: '#FFFFFF', margin: 0, letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
+                  Today
+                </p>
+                <svg width="65" height="58" viewBox="0 0 65 58" fill="none">
+                  <path d="M 60 8 C 25 8 8 18 8 52" stroke="white" strokeWidth="6" strokeLinecap="round"/>
+                  <path d="M 16 44 L 8 52 L 0 44" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
             </div>
           </div>
           <ContentSection>

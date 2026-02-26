@@ -123,14 +123,16 @@ export function renderNewsletterHTML(data: IssueData): string {
         <tr><td style="background:${c.accent};padding:12px 32px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
             <tr>
-              <td style="vertical-align:middle;text-align:left;width:40%;">
-                <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:30px;text-transform:uppercase;color:${c.white};margin:0;letter-spacing:-0.01em;white-space:nowrap;">&larr; My POV</p>
+              <td style="vertical-align:middle;text-align:center;width:40%;">
+                <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:30px;text-transform:uppercase;color:${c.white};margin:0 0 6px 0;letter-spacing:-0.01em;white-space:nowrap;">My POV</p>
+                <img src="${appUrl}/arrow-pov-left.svg" width="65" height="58" alt="" style="display:inline-block;">
               </td>
               <td style="vertical-align:middle;text-align:center;width:20%;">
                 <img src="${appUrl}/me.jpg" alt="Matt" width="64" height="64" style="display:inline-block;width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.8);">
               </td>
-              <td style="vertical-align:middle;text-align:right;width:40%;">
-                <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:30px;text-transform:uppercase;color:${c.white};margin:0;letter-spacing:-0.01em;white-space:nowrap;">Today &rarr;</p>
+              <td style="vertical-align:middle;text-align:center;width:40%;">
+                <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:30px;text-transform:uppercase;color:${c.white};margin:0 0 6px 0;letter-spacing:-0.01em;white-space:nowrap;">Today</p>
+                <img src="${appUrl}/arrow-pov-right.svg" width="65" height="58" alt="" style="display:inline-block;">
               </td>
             </tr>
           </table>
