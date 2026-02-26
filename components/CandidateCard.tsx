@@ -1,5 +1,7 @@
 'use client'
 
+const BODY = "Georgia, 'Times New Roman', serif"
+
 interface CandidateCardProps {
   id: string
   title: string
@@ -31,12 +33,12 @@ export default function CandidateCard({
 
   return (
     <div
-      className={`rounded-lg border p-4 transition-all duration-200 ${
+      className={`rounded border p-4 bg-surface transition-all duration-200 ${
         isPicked
-          ? 'border-cyan-400 bg-navy-900 shadow-[0_0_12px_rgba(34,211,238,0.2)]'
+          ? 'border-accent shadow-sm'
           : dimmed
-          ? 'border-navy-800 bg-navy-950 opacity-40'
-          : 'border-navy-800 bg-navy-900 hover:border-cyan-400/40'
+          ? 'border-border opacity-40'
+          : 'border-border hover:border-accent/50'
       }`}
     >
       <div className="flex gap-3">
@@ -49,9 +51,9 @@ export default function CandidateCard({
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-sm font-semibold text-white leading-snug line-clamp-2">
+            <h3 className="text-sm font-bold text-primary leading-snug line-clamp-2" style={{ fontFamily: BODY }}>
               {url ? (
-                <a href={url} target="_blank" rel="noopener noreferrer" className="hover:text-cyan-400">
+                <a href={url} target="_blank" rel="noopener noreferrer" className="hover:text-sky">
                   {title}
                 </a>
               ) : (
@@ -59,14 +61,14 @@ export default function CandidateCard({
               )}
             </h3>
             {score !== null && score !== undefined && (
-              <span className="flex-shrink-0 rounded bg-amber-400/20 px-2 py-0.5 text-xs font-bold text-amber-400">
+              <span className="flex-shrink-0 rounded-full bg-sky text-white px-2 py-0.5 text-xs font-bold" style={{ fontFamily: BODY }}>
                 {score}/10
               </span>
             )}
           </div>
-          {meta && <p className="mt-0.5 text-xs text-cyan-400/70">{meta}</p>}
-          <p className="mt-1.5 text-xs text-cyan-100/70 line-clamp-2">{summary}</p>
-          <p className="mt-1 text-xs text-cyan-100/50 italic line-clamp-1">{whyItMatters}</p>
+          {meta && <p className="mt-0.5 text-xs text-muted" style={{ fontFamily: BODY }}>{meta}</p>}
+          <p className="mt-1.5 text-xs text-primary/70 line-clamp-2" style={{ fontFamily: BODY }}>{summary}</p>
+          <p className="mt-1 text-xs text-muted italic line-clamp-1" style={{ fontFamily: BODY }}>{whyItMatters}</p>
         </div>
       </div>
 
@@ -74,13 +76,14 @@ export default function CandidateCard({
         <button
           onClick={() => onPick(id)}
           disabled={isPicked || dimmed}
-          className={`rounded px-3 py-1.5 text-xs font-semibold transition-colors ${
+          className={`rounded px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
             isPicked
-              ? 'bg-cyan-400 text-navy-950 cursor-default'
+              ? 'bg-accent text-white cursor-default'
               : dimmed
-              ? 'cursor-not-allowed bg-navy-800 text-navy-800'
-              : 'bg-cyan-400/10 text-cyan-400 hover:bg-cyan-400 hover:text-navy-950'
+              ? 'cursor-not-allowed'
+              : 'bg-accent/10 text-accent hover:bg-accent hover:text-white'
           }`}
+          style={{ fontFamily: BODY }}
         >
           {isPicked ? '✓ Picked' : 'Pick'}
         </button>

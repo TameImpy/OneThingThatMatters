@@ -15,6 +15,9 @@ import type {
   CategoryTable,
 } from '@/lib/types'
 
+const DISPLAY = "'Barlow Condensed', Impact, 'Arial Narrow', sans-serif"
+const BODY = "Georgia, 'Times New Roman', serif"
+
 interface Picks {
   watch: WatchCandidate | null
   news: AiNewsTop5 | null
@@ -81,7 +84,6 @@ function TodayDashboard() {
     category: keyof Picks,
     item: WatchCandidate | AiNewsTop5 | AiPaperCandidate | StoryOfPastCandidate
   ) => {
-    // Optimistic update
     setPicks(prev => ({ ...prev, [category]: item }))
     try {
       const res = await fetch('/api/pick', {
@@ -90,7 +92,6 @@ function TodayDashboard() {
         body: JSON.stringify({ table, id }),
       })
       if (!res.ok) {
-        // Revert on failure
         setPicks(prev => ({ ...prev, [category]: null }))
       }
     } catch {
@@ -105,24 +106,38 @@ function TodayDashboard() {
     picks.story !== null
 
   return (
-    <div className="min-h-screen bg-navy-950 text-cyan-100">
-      {/* Top bar */}
-      <header className="border-b border-navy-800 bg-navy-950/80 backdrop-blur sticky top-0 z-10">
+    <div className="min-h-screen bg-page text-primary">
+
+      {/* Header — ink masthead matching newsletter */}
+      <header className="bg-ink sticky top-0 z-10">
         <div className="mx-auto max-w-screen-2xl px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-sm font-bold uppercase tracking-widest text-cyan-400">
+            <p style={{
+              fontFamily: DISPLAY,
+              fontWeight: 900,
+              fontStyle: 'italic',
+              fontSize: '28px',
+              textTransform: 'uppercase',
+              letterSpacing: '-0.01em',
+              lineHeight: 1,
+              color: '#FFFFFF',
+              margin: '0 0 4px 0',
+            }}>
               One Thing That Matters
-            </h1>
-            <p className="text-xs text-cyan-100/40 mt-0.5">Editorial Dashboard · {today}</p>
+            </p>
+            <p style={{ fontFamily: BODY, fontSize: '12px', color: 'rgba(255,255,255,0.55)', margin: 0 }}>
+              Editorial Dashboard · {today}
+            </p>
           </div>
           <button
             onClick={() => router.push(`/newsletter/${today}`)}
             disabled={!allPicked}
             className={`rounded px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
               allPicked
-                ? 'bg-cyan-400 text-navy-950 hover:bg-cyan-300'
-                : 'bg-navy-800 text-navy-800 cursor-not-allowed'
+                ? 'bg-accent text-white hover:bg-accent/90'
+                : 'bg-white/10 text-white/30 cursor-not-allowed'
             }`}
+            style={{ fontFamily: BODY }}
           >
             {allPicked ? 'Go to Publish →' : `Pick all 4 to publish`}
           </button>
@@ -131,13 +146,13 @@ function TodayDashboard() {
 
       {loading && (
         <div className="flex items-center justify-center h-64">
-          <p className="text-cyan-100/40 text-sm animate-pulse">Loading today's content…</p>
+          <p className="text-muted text-sm animate-pulse" style={{ fontFamily: BODY }}>Loading today's content…</p>
         </div>
       )}
 
       {error && (
         <div className="mx-auto max-w-screen-2xl px-6 py-8">
-          <div className="rounded border border-red-800 bg-red-950/40 p-4 text-red-400 text-sm">
+          <div className="rounded border border-red-300 bg-red-50 p-4 text-red-700 text-sm" style={{ fontFamily: BODY }}>
             {error}
           </div>
         </div>
@@ -145,35 +160,14 @@ function TodayDashboard() {
 
       {!loading && !error && (
         <div className="mx-auto max-w-screen-2xl px-6 py-8 flex gap-8">
+
           {/* Left: editorial columns */}
           <div className="flex-1 min-w-0">
-            {/* Watch */}
-            <CategorySection label="Watch" icon="▶" isComplete={picks.watch !== null}>
-              {watches.length === 0 && (
-                <p className="text-xs text-cyan-100/30 italic">No watch candidates for today.</p>
-              )}
-              {watches.map(w => (
-                <CandidateCard
-                  key={w.id}
-                  id={w.id}
-                  title={w.title}
-                  summary={w.summary}
-                  whyItMatters={w.why_it_matters}
-                  score={w.fit_score}
-                  isPicked={picks.watch?.id === w.id}
-                  isAnyPicked={picks.watch !== null}
-                  onPick={() => handlePick('watch_candidates', w.id, 'watch', w)}
-                  thumbnailUrl={w.thumbnail_url}
-                  url={w.url}
-                  meta={w.channel_name}
-                />
-              ))}
-            </CategorySection>
 
             {/* Read */}
-            <CategorySection label="Read" icon="◉" isComplete={picks.news !== null}>
+            <CategorySection label="One Article That Matters" isComplete={picks.news !== null}>
               {news.length === 0 && (
-                <p className="text-xs text-cyan-100/30 italic">No news candidates for today.</p>
+                <p className="text-xs text-muted italic" style={{ fontFamily: BODY }}>No news candidates for today.</p>
               )}
               {news.map(n => (
                 <CandidateCard
@@ -193,9 +187,9 @@ function TodayDashboard() {
             </CategorySection>
 
             {/* Research */}
-            <CategorySection label="Research" icon="◎" isComplete={picks.research !== null}>
+            <CategorySection label="One Paper That Matters" isComplete={picks.research !== null}>
               {research.length === 0 && (
-                <p className="text-xs text-cyan-100/30 italic">No research candidates for today.</p>
+                <p className="text-xs text-muted italic" style={{ fontFamily: BODY }}>No research candidates for today.</p>
               )}
               {research.map(r => (
                 <CandidateCard
@@ -214,10 +208,33 @@ function TodayDashboard() {
               ))}
             </CategorySection>
 
+            {/* Watch */}
+            <CategorySection label="One Video That Matters" isComplete={picks.watch !== null}>
+              {watches.length === 0 && (
+                <p className="text-xs text-muted italic" style={{ fontFamily: BODY }}>No watch candidates for today.</p>
+              )}
+              {watches.map(w => (
+                <CandidateCard
+                  key={w.id}
+                  id={w.id}
+                  title={w.title}
+                  summary={w.summary}
+                  whyItMatters={w.why_it_matters}
+                  score={w.fit_score}
+                  isPicked={picks.watch?.id === w.id}
+                  isAnyPicked={picks.watch !== null}
+                  onPick={() => handlePick('watch_candidates', w.id, 'watch', w)}
+                  thumbnailUrl={w.thumbnail_url}
+                  url={w.url}
+                  meta={w.channel_name}
+                />
+              ))}
+            </CategorySection>
+
             {/* Story */}
-            <CategorySection label="On This Day" icon="◈" isComplete={picks.story !== null}>
+            <CategorySection label="One Thing That Mattered In The Past" isComplete={picks.story !== null}>
               {stories.length === 0 && (
-                <p className="text-xs text-cyan-100/30 italic">No story candidates for today.</p>
+                <p className="text-xs text-muted italic" style={{ fontFamily: BODY }}>No story candidates for today.</p>
               )}
               {stories.map(s => (
                 <CandidateCard
@@ -234,20 +251,31 @@ function TodayDashboard() {
               ))}
             </CategorySection>
 
-            {/* Art (auto-included, no pick needed) */}
+            {/* Art (auto-included) */}
             {art && (
               <section className="mb-8">
-                <div className="mb-3 flex items-center gap-2">
-                  <span className="text-cyan-400 text-sm font-mono">✦</span>
-                  <h2 className="text-xs font-bold uppercase tracking-widest text-cyan-400">Daily Art</h2>
-                  <span className="ml-auto rounded-full bg-cyan-400/10 px-2 py-0.5 text-xs text-cyan-400">
+                <div className="bg-ink px-6 py-3 flex items-center justify-between mb-3">
+                  <p style={{
+                    fontFamily: DISPLAY,
+                    fontWeight: 900,
+                    fontStyle: 'italic',
+                    fontSize: '22px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '-0.01em',
+                    lineHeight: 1,
+                    color: '#FFFFFF',
+                    margin: 0,
+                  }}>
+                    ◆&nbsp;Daily Art
+                  </p>
+                  <span className="text-xs font-bold text-white/60 uppercase tracking-widest" style={{ fontFamily: BODY }}>
                     auto-included
                   </span>
                 </div>
-                <div className="rounded-lg border border-navy-800 bg-navy-900 overflow-hidden">
+                <div className="rounded border border-border bg-surface overflow-hidden">
                   <img src={art.image_url} alt={art.caption ?? ''} className="w-full max-h-48 object-cover" />
                   {(art.caption || art.artist_name) && (
-                    <div className="px-4 py-2 text-xs text-cyan-100/50 italic">
+                    <div className="px-4 py-2 text-xs text-muted italic" style={{ fontFamily: BODY }}>
                       {art.caption}{art.artist_name && ` — ${art.artist_name}`}
                     </div>
                   )}
@@ -259,7 +287,7 @@ function TodayDashboard() {
           {/* Right: newsletter preview */}
           <div className="w-80 flex-shrink-0 xl:w-96">
             <div className="sticky top-24">
-              <p className="text-xs font-bold uppercase tracking-widest text-cyan-400 mb-3">
+              <p className="text-xs font-bold uppercase tracking-widest text-ink mb-3" style={{ fontFamily: BODY, letterSpacing: '0.12em' }}>
                 Newsletter Preview
               </p>
               <NewsletterPreview

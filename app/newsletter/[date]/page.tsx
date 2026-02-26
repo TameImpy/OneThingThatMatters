@@ -11,6 +11,9 @@ import type {
   NewsletterDailyArt,
 } from '@/lib/types'
 
+const DISPLAY = "'Barlow Condensed', Impact, 'Arial Narrow', sans-serif"
+const BODY = "Georgia, 'Times New Roman', serif"
+
 interface PageProps {
   params: Promise<{ date: string }>
 }
@@ -56,7 +59,6 @@ export default function NewsletterPage({ params }: PageProps) {
           wRes.json(), nRes.json(), rRes.json(), sRes.json(), aRes.json(), iRes.json(),
         ])
 
-        // Use already-picked items if available
         const pickedWatch = wData.data?.find((w: WatchCandidate) => w.picked) ?? null
         const pickedNews = nData.data?.find((n: AiNewsTop5) => n.picked) ?? null
         const pickedResearch = rData.data?.find((r: AiPaperCandidate) => r.picked) ?? null
@@ -106,19 +108,34 @@ export default function NewsletterPage({ params }: PageProps) {
   const allPicked = picks.watch && picks.news && picks.research && picks.story
 
   return (
-    <div className="min-h-screen bg-navy-950 text-cyan-100">
-      <header className="border-b border-navy-800 bg-navy-950/80 backdrop-blur sticky top-0 z-10">
+    <div className="min-h-screen bg-page text-primary">
+
+      {/* Header */}
+      <header className="bg-ink sticky top-0 z-10">
         <div className="mx-auto max-w-4xl px-6 py-4 flex items-center justify-between">
           <div>
-            <h1 className="text-sm font-bold uppercase tracking-widest text-cyan-400">
-              Newsletter · {date}
-            </h1>
-            <p className="text-xs text-cyan-100/40 mt-0.5">Review and publish</p>
+            <p style={{
+              fontFamily: DISPLAY,
+              fontWeight: 900,
+              fontStyle: 'italic',
+              fontSize: '28px',
+              textTransform: 'uppercase',
+              letterSpacing: '-0.01em',
+              lineHeight: 1,
+              color: '#FFFFFF',
+              margin: '0 0 4px 0',
+            }}>
+              One Thing That Matters
+            </p>
+            <p style={{ fontFamily: BODY, fontSize: '12px', color: 'rgba(255,255,255,0.55)', margin: 0 }}>
+              Review &amp; Publish · {date}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="rounded px-3 py-1.5 text-xs text-cyan-400/70 hover:text-cyan-400 border border-navy-800 hover:border-cyan-400/40 transition-colors"
+              className="rounded px-3 py-1.5 text-xs text-white/60 hover:text-white border border-white/20 hover:border-white/40 transition-colors"
+              style={{ fontFamily: BODY }}
             >
               ← Back
             </button>
@@ -128,9 +145,10 @@ export default function NewsletterPage({ params }: PageProps) {
                 disabled={!allPicked || publishing}
                 className={`rounded px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
                   allPicked && !publishing
-                    ? 'bg-cyan-400 text-navy-950 hover:bg-cyan-300'
-                    : 'bg-navy-800 text-navy-800 cursor-not-allowed'
+                    ? 'bg-accent text-white hover:bg-accent/90'
+                    : 'bg-white/10 text-white/30 cursor-not-allowed'
                 }`}
+                style={{ fontFamily: BODY }}
               >
                 {publishing ? 'Sending…' : 'Publish & Send →'}
               </button>
@@ -141,23 +159,23 @@ export default function NewsletterPage({ params }: PageProps) {
 
       <div className="mx-auto max-w-4xl px-6 py-8">
         {loading && (
-          <p className="text-cyan-100/40 text-sm animate-pulse text-center py-16">Loading…</p>
+          <p className="text-muted text-sm animate-pulse text-center py-16" style={{ fontFamily: BODY }}>Loading…</p>
         )}
 
         {!allPicked && !loading && (
-          <div className="mb-6 rounded border border-amber-800/50 bg-amber-950/20 p-4 text-amber-400 text-sm">
+          <div className="mb-6 rounded border border-amber-300 bg-amber-50 p-4 text-amber-800 text-sm" style={{ fontFamily: BODY }}>
             Not all categories have been picked yet. Go back and complete your selections.
           </div>
         )}
 
         {error && (
-          <div className="mb-6 rounded border border-red-800 bg-red-950/40 p-4 text-red-400 text-sm">
+          <div className="mb-6 rounded border border-red-300 bg-red-50 p-4 text-red-700 text-sm" style={{ fontFamily: BODY }}>
             {error}
           </div>
         )}
 
         {published && (
-          <div className="mb-6 rounded border border-cyan-800 bg-cyan-950/20 p-4 text-cyan-400 text-sm font-semibold">
+          <div className="mb-6 rounded border border-green-300 bg-green-50 p-4 text-green-800 text-sm font-semibold" style={{ fontFamily: BODY }}>
             ✓ Newsletter published and sent to all subscribers!
           </div>
         )}
@@ -165,7 +183,7 @@ export default function NewsletterPage({ params }: PageProps) {
         {!loading && (
           <>
             <div className="mb-6">
-              <label className="block text-xs font-bold uppercase tracking-widest text-cyan-400 mb-2">
+              <label className="block text-xs font-bold uppercase tracking-widest text-ink mb-2" style={{ fontFamily: BODY, letterSpacing: '0.12em' }}>
                 My POV Today
               </label>
               <textarea
@@ -173,7 +191,8 @@ export default function NewsletterPage({ params }: PageProps) {
                 onChange={e => setPov(e.target.value)}
                 placeholder="Write your take on today's AI signal…"
                 rows={4}
-                className="w-full rounded border border-navy-800 bg-navy-900 px-4 py-3 text-sm text-cyan-100 placeholder-cyan-100/30 focus:outline-none focus:border-cyan-400/50 resize-none"
+                className="w-full rounded border border-border bg-surface px-4 py-3 text-sm text-primary placeholder-muted/50 focus:outline-none focus:border-accent/60 resize-none"
+                style={{ fontFamily: BODY }}
               />
             </div>
             <NewsletterPreview

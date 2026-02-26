@@ -2,12 +2,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,900&display=swap');
 
 @theme {
-  --color-navy-950: #0B0F1A;
-  --color-navy-900: #111827;
-  --color-navy-800: #1E2A3A;
+  --color-ink: #537367;
+  --color-accent: #E8522E;
+  --color-sky: #0EA5E9;
+  --color-page: #F3F4F6;
+  --color-surface: #FFFFFF;
+  --color-border: #E5E7EB;
+  --color-primary: #1A1A1A;
+  --color-muted: #6B7280;
 }
 
 body {
-  background-color: var(--color-navy-950);
-  color: #CFFAFE;
+  background-color: var(--color-page);
+  color: var(--color-primary);
+  font-family: Georgia, 'Times New Roman', serif;
 }
