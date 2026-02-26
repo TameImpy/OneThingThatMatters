@@ -222,6 +222,13 @@ export function renderNewsletterHTML(data: IssueData): string {
           ${bulletList(story.event_summary, story.why_it_mattered)}
         `)}` : ''}
 
+        <!-- Quote of the Day -->
+        ${banner('Quote of the Day')}
+        ${section(`
+          <p style="font-family:${f.body};font-size:18px;font-style:italic;color:${c.textPrimary};line-height:1.6;margin:0 0 12px 0;">&ldquo;Placeholder quote goes here.&rdquo;</p>
+          <p style="font-family:${f.body};font-size:13px;color:${c.textMuted};margin:0;">&mdash; Author Name</p>
+        `)}
+
         <!-- Footer -->
         <tr><td style="background:${c.ink};padding:20px 32px;text-align:center;">
           <p style="font-family:${f.body};font-size:12px;color:${c.textMuted};margin:0;">
