@@ -100,6 +100,7 @@ export function renderNewsletterHTML(data: IssueData): string {
         <!-- Masthead -->
         <tr><td style="background:${c.ink};padding:28px 32px;text-align:center;">
           <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:48px;text-transform:uppercase;letter-spacing:-0.02em;line-height:1;color:${c.white};margin:0 0 8px 0;">One Thing That Matters</p>
+          <p style="font-family:${f.body};font-size:14px;color:${c.white};opacity:0.9;margin:0 0 6px 0;">One signal in AI. Every day. Every Angle.</p>
           <p style="font-family:${f.body};font-size:13px;color:${c.white};opacity:0.75;margin:0;">${formatDate(issue_date)}</p>
         </td></tr>
 

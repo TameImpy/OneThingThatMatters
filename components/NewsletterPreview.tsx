@@ -142,6 +142,9 @@ export default function NewsletterPreview({
         }}>
           One Thing That Matters
         </p>
+        <p style={{ fontFamily: BODY, fontSize: '14px', color: '#FFFFFF', opacity: 0.9, margin: '0 0 6px 0' }}>
+          One signal in AI. Every day. Every Angle.
+        </p>
         <p style={{ fontFamily: BODY, fontSize: '13px', color: '#FFFFFF', opacity: 0.75, margin: 0 }}>
           {formatDate(issueDate)}
         </p>
