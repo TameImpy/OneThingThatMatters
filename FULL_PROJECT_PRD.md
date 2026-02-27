@@ -1,159 +1,211 @@
-# PROJECT_PRD.md
-## One Thing That Matters – Full System Product Requirements Document (PRD)
-Version 1.0 (2025)
+# One Thing That Matters — Product Requirements Document
 
-## 1. Purpose and Vision
-The One Thing That Matters (OTTM) system is an agent-assisted daily newsletter workflow designed to surface one high-quality item to Watch, Listen To, and Read each day. The goal is to reduce editorial workload while maintaining high standards of relevance, clarity, and insight.
+Version 2.0 (February 2026)
 
-The system:
-- Automates content ingestion across categories.
-- Enriches items with LLM summaries, contextual insights, and fit scoring.
-- Stores and ranks candidates in Supabase.
-- Surfaces shortlists through a UI.
-- Allows the user to select one item per category.
-- Generates a newsletter draft automatically.
+---
 
-This PRD covers the end-to-end architecture for the Watch category and defines the foundation for future Listen and Read categories.
+## 1. Product Vision
 
-## 2. System Overview
-### A. Ingestion Layer (n8n + LLM)
-- Fetches YouTube videos from curated channels.
-- Summarises videos.
-- Generates “why it matters”.
-- Assigns a fit_score (1–10).
-- UPSERTS items into Supabase.
+**One Thing That Matters (OTTM)** is an internal editorial tool for producing a daily AI newsletter. Every weekday the editor (Matt) opens the dashboard, reviews AI-curated candidates across five content categories, selects the best signal in each, picks a quote, previews the full email, and publishes to subscribers — all from a single browser session.
 
-### B. Supabase Backend
-- Stores all candidate items.
-- Ensures deduplication via video_id.
-- Tracks first discovery (`ingested_at`), updates, selections, and discards.
-- Provides shortlist, selection, discard, and history queries.
+The product surfaces one high-quality item per category per day. Quality over quantity: the entire editorial workflow takes under 10 minutes.
 
-### C. Backend Service (Next.js API or Supabase Edge)
-Exposes:
-- shortlist endpoint
-- select endpoint
-- discard endpoint
-- issue-builder support endpoint
+---
 
-### D. Frontend UI (Next.js)
-- Displays shortlists.
-- Supports selection or discard actions.
-- Provides a newsletter builder.
-- Shows history of past issues.
+## 2. User
 
-### E. Agent Layer (Later)
-- Auto-generates newsletter drafts.
-- Provides daily recommendations.
+**Sole user:** Matt (editor). This is an internal tool, not a multi-user SaaS. There is no authentication layer — the app is not publicly accessible.
 
-## 3. Data Model
-### Table: watch_candidates
+**Public-facing pages:** `/subscribe` and `/unsubscribe` are accessible to newsletter readers.
 
-| Column | Type | Required | Notes |
-|--------|------|----------|-------|
-| id | uuid | yes | PK |
-| video_id | text | yes | Unique YouTube ID |
-| channel_id | text | yes | YouTube channel ID |
-| channel_name | text | yes | Channel title |
-| title | text | yes | Video title |
-| url | text | yes | Full YouTube URL |
-| summary | text | yes | LLM summary |
-| why_it_matters | text | yes | LLM explanation |
-| fit_score | int | yes | 1–10 |
-| fit_rationale | text | optional | Optional LLM rationale |
-| published_at | timestamptz | yes | YouTube publish time |
-| thumbnail_url | text | optional | Thumbnail URL |
-| view_count | int | optional |  |
-| like_count | int | optional |  |
-| duration_seconds | numeric | optional |  |
-| used_in_issue_date | date | default null | Newsletter selection |
-| discarded | boolean | default false | Editorial reject |
-| created_at | timestamptz | yes | Row creation time |
-| updated_at | timestamptz | yes | Auto-updated on any change |
-| ingested_at | timestamptz | yes | First discovery, immutable |
+---
 
-## 4. Timestamps Explained
-### created_at
-When Supabase inserted the row (not necessarily editorial discovery time).
+## 3. Editorial Flow
 
-### updated_at
-Updates whenever **any** field changes: scoring refresh, metadata update, enrichment, etc.
+1. n8n pipelines ingest content overnight and populate the 5 Supabase tables.
+2. Editor opens `/today`.
+3. For each of the 4 pickable categories (Watch, Read, Research, Story), editor reviews candidates and clicks **Pick** on the best one. The pick is written to the DB immediately.
+4. Editor clicks **Generate Quotes**, reviews 5 AI-generated quotes, and selects one. Selection is stored in sessionStorage.
+5. Art for the day is loaded automatically; editor confirms it (stored in sessionStorage).
+6. Editor clicks **Preview Newsletter** → navigates to `/newsletter/[date]`.
+7. Editor reviews the live rendered email preview.
+8. Editor clicks **Publish** → newsletter is sent via Resend to all active subscribers, and the issue is recorded in `newsletter_issues`.
 
-### ingested_at
-Critical. The first time the pipeline **discovered** this item.  
-Used for shortlist and recency logic.  
-Does not change on update.
+---
 
-### used_in_issue_date
-Date the item was selected for a newsletter.
+## 4. Content Categories
 
-## 5. Backend Requirements
-### 5.1 Shortlist Query
+| Category | Source Table | Date Column | Filter Type | Pick Field |
+|----------|-------------|-------------|-------------|-----------|
+| Watch | `watch_candidates` | `updated_at` | timestamp (day range) | `picked`, `picked_at` |
+| Read | `ai_news_top5` | `run_date` | date equality | `picked`, `picked_at` |
+| Research | `ai_paper_candidates` | `run_date` | date equality | `picked`, `picked_at` |
+| Story | `stories_of_past_candidates` | `newsletter_date` | date equality | `selected` (boolean only) |
+| Art | `newsletter_daily_art` | `issue_date` | date equality | None (confirmed via sessionStorage) |
+
+All tables are populated by n8n pipelines; the app only reads and marks picks.
+
+---
+
+## 5. Data Model
+
+All types are defined in `lib/types.ts`.
+
+### WatchCandidate
+YouTube video enriched by LLM pipeline.
 ```
-SELECT *
-FROM watch_candidates
-WHERE used_in_issue_date IS NULL
-  AND discarded = false
-  AND ingested_at >= now() - interval '3 days'
-ORDER BY fit_score DESC, published_at DESC
-LIMIT 5;
+id, video_id, channel_id, channel_name, title, url, summary, why_it_matters,
+fit_score, fit_rationale?, published_at, thumbnail_url?, view_count?,
+like_count?, duration_seconds?, picked, picked_at?, ingested_at, created_at, updated_at
 ```
 
-### 5.2 Endpoints
-#### GET /api/watch/shortlist
-Returns shortlist.
+### AiNewsTop5
+AI news article from daily pipeline.
+```
+id, run_date, title, url, source, summary, why_it_matters,
+fit_score?, picked, picked_at?, created_at, updated_at
+```
 
-#### POST /api/watch/select
-Body: { id }  
-Effect: sets used_in_issue_date = today.
+### AiPaperCandidate
+AI research paper from daily pipeline.
+```
+id, run_date, title, authors?, pdf_url?, abstract?,
+summary_llm?, why_it_matters?, fit_score?,
+picked, picked_at?, created_at
+```
 
-#### POST /api/watch/discard
-Body: { id }  
-Effect: sets discarded = true.
+### StoryOfPastCandidate
+Historical AI event ("on this day in AI").
+```
+id, newsletter_date, this_time_line, event_summary,
+why_it_mattered, echo_today?, year_offset?, fit_score?,
+selected, created_at
+```
+Note: uses `selected` (not `picked`) and has no `picked_at`.
 
-#### GET /api/watch/history
-Returns previously selected items.
+### NewsletterDailyArt
+Daily image asset generated by the n8n pipeline.
+```
+id, issue_date, image_url, caption?, artist_name?, created_at
+```
+No pick field — editor confirms via sessionStorage.
 
-## 6. Frontend Requirements
-### /watch
-Displays shortlist with:
-- thumbnail
-- title
-- channel name
-- summary
-- why_it_matters
-- fit_score
-- select/discard buttons
+### DailyQuote
+Generated by `POST /api/newsletter/quotes` (OpenAI, not persisted to DB).
+```
+text, author, attribution, relevance
+```
 
-### /issue-builder
-- Shows today's selected items.
-- Generates Markdown newsletter draft.
-- Renders editor with preview.
+### Subscriber
+```
+id, email, subscribed_at, active
+```
 
-### /history
-- Displays past issues sorted by date.
+### NewsletterIssue
+Record written after each successful publish.
+```
+id, issue_date, watch_id?, news_id?, paper_id?,
+story_id?, art_id?, sent_at?, subscriber_count?, created_at
+```
 
-## 7. Non-Functional Requirements
-- Fast queries (target <150ms).
-- No duplicate candidates.
-- Shortlist resilient to reprocessing.
-- Minimalistic UI with high information clarity.
-- Secure: service key server-side only; anon key client-side only.
-- Architecture must support Listen and Read categories with identical flows.
+---
 
-## 8. Roadmap
-### Phase 1 — Watch MVP
-- Backend shortlist + selection + discard.
-- Watch shortlist UI.
-- Newsletter builder.
+## 6. Pages
 
-### Phase 2 — Listen + Read
-- Mirror ingestion, enrichment, and UI.
+### `/today`
+Main editorial dashboard. Fetches today's candidates for all 5 categories. Editor picks one per category. Includes quote generation flow. Links to `/newsletter/[date]` for preview.
 
-### Phase 3 — Agent Automation
-- Auto-generate newsletter draft daily.
+### `/newsletter/[date]`
+Live newsletter preview. Reads picks from the DB (for the 4 content categories) and from sessionStorage (for quote and art confirmation). Contains the **Publish** button.
 
-### Phase 4 — Intelligence Layer
-- Fit-score improvement via embeddings.
-- Relevance ranking.
+### `/subscribe`
+Public form. Accepts an email address and calls `POST /api/subscribe`.
 
+### `/unsubscribe`
+Public page. Reads `?email=` query param and calls `DELETE /api/subscribe`. Linked from the footer of every newsletter email.
+
+---
+
+## 7. API Routes
+
+All routes are Next.js App Router route handlers in `app/api/`.
+
+| Method | Path | Body / Query | Response |
+|--------|------|-------------|---------|
+| GET | `/api/today/watch` | `?date=YYYY-MM-DD` | `{ success, data: WatchCandidate[] }` |
+| GET | `/api/today/news` | `?date=YYYY-MM-DD` | `{ success, data: AiNewsTop5[] }` |
+| GET | `/api/today/research` | `?date=YYYY-MM-DD` | `{ success, data: AiPaperCandidate[] }` |
+| GET | `/api/today/story` | `?date=YYYY-MM-DD` | `{ success, data: StoryOfPastCandidate[] }` |
+| GET | `/api/today/art` | `?date=YYYY-MM-DD` | `{ success, data: NewsletterDailyArt \| null }` |
+| POST | `/api/pick` | `{ table: CategoryTable, id: string }` | `{ success }` |
+| POST | `/api/newsletter/quotes` | `{ watch, news, research, story }` | `{ success, quotes: DailyQuote[] }` |
+| GET | `/api/newsletter/issue-count` | `?date=YYYY-MM-DD` | `{ issueNumber: number }` |
+| POST | `/api/newsletter/publish` | `PublishRequest` | `{ success, subscriberCount }` |
+| POST | `/api/subscribe` | `{ email: string }` | `{ success }` |
+| DELETE | `/api/subscribe` | `{ email: string }` | `{ success }` |
+
+---
+
+## 8. Email Template
+
+Rendered by `renderNewsletterHTML()` in `lib/resend.ts` and sent via Resend.
+
+**Sections (in order):**
+1. Header — issue number, date, masthead
+2. Daily Art — full-width image with caption
+3. Quote of the Day — selected DailyQuote
+4. Watch — video title, channel, summary, why it matters, link
+5. Read — article title, source, summary, why it matters, link
+6. Research — paper title, authors, abstract/summary, why it matters, PDF link
+7. Story — historical event, echo_today connection
+8. Footer — unsubscribe link (uses `NEXT_PUBLIC_APP_URL`)
+
+**Design system (email):**
+- Background: `#0B0F1A` (navy-950)
+- Card background: `#111827` (navy-900)
+- Borders: `#1E2A3A` (navy-800)
+- Accent: `#22D3EE` (cyan-400)
+- Body text: `#CFFAFE` (cyan-100)
+- Score badges: `#FBBF24` (amber-400)
+- Display font: Barlow Condensed / Impact / Arial Narrow
+- Body font: Georgia / Times New Roman
+
+---
+
+## 9. Integrations
+
+### n8n (content ingestion)
+External automation platform that runs daily pipelines to populate all 5 Supabase content tables. The Next.js app has no direct n8n integration — it only reads the data n8n writes.
+
+### Supabase
+PostgreSQL database. All DB access goes through `lib/supabase.ts` using the service role key (server-side only). Two additional tables (`subscribers`, `newsletter_issues`) were added via `migrations/new_tables.sql`.
+
+### Resend
+Transactional email. Used in `lib/resend.ts` and called from `POST /api/newsletter/publish`. Sends one email per active subscriber (batch send).
+
+### OpenAI
+GPT-4o-mini is called from `POST /api/newsletter/quotes` to generate 5 historically accurate quotes contextualised to today's newsletter content. Uses the `openai` npm package and `OPEN_AI_KEY` env var.
+
+---
+
+## 10. Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SUPABASE_URL` | yes | Supabase project URL |
+| `SUPABASE_SERVICE_KEY` | yes | Service role key — server-side DB access only, never exposed to browser |
+| `RESEND_API_KEY` | yes | Resend API key for email delivery |
+| `OPEN_AI_KEY` | yes | OpenAI API key for GPT-4o-mini quote generation |
+| `NEWSLETTER_START_DATE` | yes | `YYYY-MM-DD` of first issue; basis for weekday issue number calculation |
+| `NEXT_PUBLIC_APP_URL` | yes | Public base URL, inserted into unsubscribe links in email footer |
+
+---
+
+## 11. Non-Functional Requirements
+
+- **Security:** `SUPABASE_SERVICE_KEY` must never be exposed to the browser. All writes go through Next.js API routes.
+- **TypeScript:** Strict mode, zero `any` types.
+- **Styling:** Tailwind CSS v4 with CSS-first config — no `tailwind.config.ts`. Custom colours defined via `@theme` in `app/globals.css`.
+- **Optimistic UI:** Pick buttons update state immediately; revert on API failure.
+- **Publish validation:** The publish flow validates that all 4 content picks and the quote are present before sending.
+- **No auth:** Internal tool — no login screen, no session management.
