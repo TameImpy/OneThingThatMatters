@@ -41,6 +41,24 @@ function firstSentence(text: string | null | undefined): string {
   return match ? match[0].trim() : text.slice(0, 140)
 }
 
+const NOISE_SIZES = [10, 12, 15, 18, 22, 26]
+function noiseSize(title: string, index: number): number {
+  const sum = title.split('').reduce((acc, c, i) => acc + c.charCodeAt(0) * (i + 1), 0)
+  return NOISE_SIZES[(sum + index * 31) % NOISE_SIZES.length]
+}
+
+const NOISE_OFFSETS = [-10, -6, -3, 0, 4, 8]
+function noiseOffset(title: string, index: number): number {
+  const sum = title.split('').reduce((acc, c, i) => acc + c.charCodeAt(0) * (i + 2), 0)
+  return NOISE_OFFSETS[(sum + index * 17) % NOISE_OFFSETS.length]
+}
+
+const NOISE_COLORS = ['#3D4A5C', '#4B5869', '#6B7280', '#9CA3AF', '#C9D1DA', '#E2E8F0']
+function noiseColor(title: string, index: number): string {
+  const sum = title.split('').reduce((acc, c, i) => acc + c.charCodeAt(0) * (i + 3), 0)
+  return NOISE_COLORS[(sum + index * 13) % NOISE_COLORS.length]
+}
+
 function formatDate(dateStr: string): string {
   return new Date(dateStr + 'T12:00:00Z').toLocaleDateString('en-US', {
     weekday: 'long',
@@ -397,26 +415,26 @@ export default function NewsletterPreview({
 
       {/* The Noise */}
       {noiseTitles && noiseTitles.length > 0 && (
-        <div style={{ background: '#060A14', padding: '28px 32px' }}>
-          <p style={{
-            fontFamily: DISPLAY,
-            fontWeight: 700,
-            fontStyle: 'italic',
-            fontSize: '13px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            color: '#4B5563',
-            margin: '0 0 8px 0',
-          }}>
-            ◆ The Noise
-          </p>
-          <p style={{ fontFamily: BODY, fontSize: '12px', color: '#374151', fontStyle: 'italic', margin: '0 0 18px 0' }}>
-            Everything we filtered out today, so you didn&rsquo;t have to.
-          </p>
-          <p style={{ fontFamily: BODY, fontSize: '11px', color: '#374151', lineHeight: 2.2, margin: 0 }}>
-            {noiseTitles.join(' \u00A0·\u00A0 ')}
-          </p>
-        </div>
+        <>
+          <SectionBanner label="The Noise" />
+          <ContentSection>
+            <p style={{ fontFamily: BODY, fontSize: '18px', fontStyle: 'italic', color: PRIMARY, margin: 0, lineHeight: 1.4 }}>
+              Everything we filtered out today, so you didn&rsquo;t have to.
+            </p>
+          </ContentSection>
+          <div style={{ background: '#060A14', padding: '24px 32px' }}>
+            <p style={{ margin: 0, lineHeight: 2.4 }}>
+              {noiseTitles.flatMap((title, i) => [
+                <span key={`t-${i}`} style={{ fontFamily: BODY, fontSize: `${noiseSize(title, i)}px`, color: noiseColor(title, i), position: 'relative', top: `${noiseOffset(title, i)}px` }}>
+                  {title}
+                </span>,
+                i < noiseTitles.length - 1
+                  ? <span key={`d-${i}`} style={{ fontFamily: BODY, fontSize: '10px', color: '#374151' }}>&nbsp;·&nbsp;</span>
+                  : null,
+              ])}
+            </p>
+          </div>
+        </>
       )}
 
       {/* Footer */}

@@ -40,6 +40,24 @@ function stripUrls(text: string | null | undefined): string {
   return text.replace(/\(?\s*https?:\/\/\S+\s*\)?/g, '').replace(/\s+/g, ' ').trim()
 }
 
+const NOISE_SIZES = [10, 12, 15, 18, 22, 26]
+function noiseSize(title: string, index: number): number {
+  const sum = title.split('').reduce((acc, c, i) => acc + c.charCodeAt(0) * (i + 1), 0)
+  return NOISE_SIZES[(sum + index * 31) % NOISE_SIZES.length]
+}
+
+const NOISE_OFFSETS = [-10, -6, -3, 0, 4, 8]
+function noiseOffset(title: string, index: number): number {
+  const sum = title.split('').reduce((acc, c, i) => acc + c.charCodeAt(0) * (i + 2), 0)
+  return NOISE_OFFSETS[(sum + index * 17) % NOISE_OFFSETS.length]
+}
+
+const NOISE_COLORS = ['#3D4A5C', '#4B5869', '#6B7280', '#9CA3AF', '#C9D1DA', '#E2E8F0']
+function noiseColor(title: string, index: number): string {
+  const sum = title.split('').reduce((acc, c, i) => acc + c.charCodeAt(0) * (i + 3), 0)
+  return NOISE_COLORS[(sum + index * 13) % NOISE_COLORS.length]
+}
+
 function firstSentence(text: string | null | undefined): string {
   if (!text) return ''
   const match = text.match(/^[^.!?]+[.!?]/)
@@ -49,6 +67,11 @@ function firstSentence(text: string | null | undefined): string {
 export function renderNewsletterHTML(data: IssueData): string {
   const { issue_date, issueNumber, pov, watch, news, research, story, art, quote, noiseTitles } = data
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://onethingmatters.com'
+  const noiseHtml = noiseTitles && noiseTitles.length > 0
+    ? noiseTitles.map((t, i) =>
+        `<span style="font-family:${`Georgia,'Times New Roman',serif`};font-size:${noiseSize(t, i)}px;color:${noiseColor(t, i)};position:relative;top:${noiseOffset(t, i)}px;">${t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/@/g, '&#64;')}</span>${i < noiseTitles.length - 1 ? `<span style="font-family:Georgia,'Times New Roman',serif;font-size:10px;color:#374151;">&nbsp;&middot;&nbsp;</span>` : ''}`
+      ).join('')
+    : null
 
   const c = {
     ink: '#537367',
@@ -235,12 +258,12 @@ export function renderNewsletterHTML(data: IssueData): string {
           <p style="font-family:${f.body};font-size:13px;color:${c.textMuted};margin:0;">&mdash; ${e(quote.author)}${quote.attribution ? `, ${e(quote.attribution)}` : ''}</p>
         `)}` : ''}
 
-        ${noiseTitles && noiseTitles.length > 0 ? `
+        ${noiseHtml ? `
         <!-- The Noise -->
-        <tr><td style="background:#060A14;padding:28px 32px;">
-          <p style="font-family:${f.display};font-weight:700;font-style:italic;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;color:#4B5563;margin:0 0 8px 0;">&#9670; The Noise</p>
-          <p style="font-family:${f.body};font-size:12px;color:#374151;font-style:italic;margin:0 0 18px 0;">Everything we filtered out today, so you didn&rsquo;t have to.</p>
-          <p style="font-family:${f.body};font-size:11px;color:#374151;line-height:2.2;margin:0;">${noiseTitles.map(t => e(t)).join(' &nbsp;&middot;&nbsp; ')}</p>
+        ${banner('The Noise')}
+        ${section(`<p style="font-family:${f.body};font-size:18px;font-style:italic;color:#1A1A1A;margin:0;line-height:1.4;">Everything we filtered out today, so you didn&rsquo;t have to.</p>`)}
+        <tr><td style="background:#060A14;padding:24px 32px;">
+          <p style="margin:0;line-height:2.4;">${noiseHtml}</p>
         </td></tr>` : ''}
 
         <!-- Footer -->
