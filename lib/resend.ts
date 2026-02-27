@@ -90,7 +90,7 @@ export function renderNewsletterHTML(data: IssueData): string {
   // Full-bleed coral section banner — 36px Barlow Condensed 900 italic
   const banner = (label: string) =>
     `<tr><td style="background:${c.accent};padding:18px 32px;text-align:center;">
-      <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:36px;text-transform:uppercase;letter-spacing:-0.01em;line-height:1;color:${c.white};margin:0;">&#9670;&nbsp;${label}</p>
+      <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:36px;text-transform:uppercase;letter-spacing:-0.01em;line-height:1;color:${c.white};margin:0;"><span style="position:relative;top:-3px;">&#9670;</span>&nbsp;${label}</p>
     </td></tr>`
 
   // Plain white content row — no card border, no inner table
@@ -212,7 +212,6 @@ export function renderNewsletterHTML(data: IssueData): string {
         ${news ? `
         ${banner('One Article That Matters')}
         ${section(`
-          ${scoreBadge(news.fit_score)}
           ${title(news.title)}
           ${news.summary ? subheading('Summary') + bulletList(news.summary) : ''}
           ${news.why_it_matters ? subheading('Why it matters') + bulletList(news.why_it_matters) : ''}
@@ -222,7 +221,6 @@ export function renderNewsletterHTML(data: IssueData): string {
         ${research ? `
         ${banner('One Paper That Matters')}
         ${section(`
-          ${scoreBadge(research.fit_score)}
           ${title(research.title)}
           ${authors(research.authors ?? null)}
           ${research.summary_llm ? subheading('Summary') + bulletList(research.summary_llm) : ''}
@@ -233,7 +231,6 @@ export function renderNewsletterHTML(data: IssueData): string {
         ${watch ? `
         ${banner('One Video That Matters')}
         ${section(`
-          ${scoreBadge(watch.fit_score)}
           ${title(watch.title)}
           ${watch.summary ? subheading('Summary') + bulletList(watch.summary) : ''}
           ${watch.why_it_matters ? subheading('Why it matters') + bulletList(watch.why_it_matters) : ''}
@@ -244,7 +241,6 @@ export function renderNewsletterHTML(data: IssueData): string {
         ${story ? `
         ${banner(story.year_offset ? `One Thing That Mattered This Time ${story.year_offset} Years Ago` : '&hellip; And One Thing That Mattered In The Past')}
         ${section(`
-          ${muted(story.this_time_line)}
           ${title(story.event_summary)}
           ${body(story.why_it_mattered)}
           ${story.echo_today ? body(story.echo_today) : ''}
@@ -252,7 +248,13 @@ export function renderNewsletterHTML(data: IssueData): string {
 
         ${quote ? `
         <!-- Quote of the Day -->
-        ${banner('Quote of the Day')}
+        <tr><td style="background:${c.accent};padding:18px 32px;text-align:center;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+            <td style="width:56px;text-align:left;vertical-align:middle;"><span style="font-family:Georgia,serif;font-size:72px;font-weight:900;color:rgba(255,255,255,0.3);line-height:1;">&ldquo;</span></td>
+            <td style="text-align:center;vertical-align:middle;"><p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:36px;text-transform:uppercase;letter-spacing:-0.01em;line-height:1;color:${c.white};margin:0;">Quote of the Day</p></td>
+            <td style="width:56px;text-align:right;vertical-align:middle;"><span style="font-family:Georgia,serif;font-size:72px;font-weight:900;color:rgba(255,255,255,0.3);line-height:1;">&rdquo;</span></td>
+          </tr></table>
+        </td></tr>
         ${section(`
           <p style="font-family:${f.body};font-size:18px;font-style:italic;color:${c.textPrimary};line-height:1.6;margin:0 0 12px 0;">&ldquo;${e(quote.text)}&rdquo;</p>
           <p style="font-family:${f.body};font-size:13px;color:${c.textMuted};margin:0;">&mdash; ${e(quote.author)}${quote.attribution ? `, ${e(quote.attribution)}` : ''}</p>

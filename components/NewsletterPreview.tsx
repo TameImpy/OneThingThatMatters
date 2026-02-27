@@ -82,7 +82,7 @@ function SectionBanner({ label }: { label: string }) {
         color: '#FFFFFF',
         margin: 0,
       }}>
-        ◆&nbsp;{label}
+        <span style={{ position: 'relative', top: '-3px' }}>◆</span>&nbsp;{label}
       </p>
     </div>
   )
@@ -336,7 +336,6 @@ export default function NewsletterPreview({
         <>
           <SectionBanner label="One Article That Matters" />
           <ContentSection>
-            <ScoreBadge score={news.fit_score} />
             <Title>{news.title}</Title>
             {news.summary && (<><Subheading>Summary</Subheading><BulletList items={[news.summary]} /></>)}
             {news.why_it_matters && (<><Subheading>Why it matters</Subheading><BulletList items={[news.why_it_matters]} /></>)}
@@ -350,7 +349,6 @@ export default function NewsletterPreview({
         <>
           <SectionBanner label="One Paper That Matters" />
           <ContentSection>
-            <ScoreBadge score={research.fit_score} />
             <Title>{research.title}</Title>
             {research.authors && (
               <p style={{ fontFamily: BODY, fontSize: '13px', color: MUTED, margin: '0 0 12px 0' }}>
@@ -369,7 +367,6 @@ export default function NewsletterPreview({
         <>
           <SectionBanner label="One Video That Matters" />
           <ContentSection>
-            <ScoreBadge score={watch.fit_score} />
             <Title>{watch.title}</Title>
             {watch.summary && (<><Subheading>Summary</Subheading><BulletList items={[watch.summary]} /></>)}
             {watch.why_it_matters && (<><Subheading>Why it matters</Subheading><BulletList items={[watch.why_it_matters]} /></>)}
@@ -390,7 +387,6 @@ export default function NewsletterPreview({
         <>
           <SectionBanner label={story.year_offset ? `One Thing That Mattered This Time ${story.year_offset} Years Ago` : '… And One Thing That Mattered In The Past'} />
           <ContentSection>
-            {story.this_time_line && <Muted>{story.this_time_line}</Muted>}
             <Title>{story.event_summary}</Title>
             <Body>{story.why_it_mattered}</Body>
             {story.echo_today && <Body>{story.echo_today}</Body>}
@@ -401,7 +397,16 @@ export default function NewsletterPreview({
       {/* Quote of the Day */}
       {quote && (
         <>
-          <SectionBanner label="Quote of the Day" />
+          {/* Quote banner — decorative curly quotes flank the heading */}
+          <div style={{ background: ACCENT, padding: '18px 32px', textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
+              <span style={{ fontFamily: 'Georgia, serif', fontSize: '72px', fontWeight: 900, color: 'rgba(255,255,255,0.3)', lineHeight: 1, marginTop: '-8px' }}>&ldquo;</span>
+              <p style={{ fontFamily: DISPLAY, fontWeight: 900, fontStyle: 'italic', fontSize: '36px', textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 1, color: '#FFFFFF', margin: 0 }}>
+                Quote of the Day
+              </p>
+              <span style={{ fontFamily: 'Georgia, serif', fontSize: '72px', fontWeight: 900, color: 'rgba(255,255,255,0.3)', lineHeight: 1, marginTop: '-8px' }}>&rdquo;</span>
+            </div>
+          </div>
           <ContentSection>
             <p style={{ fontFamily: BODY, fontSize: '18px', fontStyle: 'italic', color: PRIMARY, lineHeight: 1.6, margin: '0 0 12px 0' }}>
               &ldquo;{quote.text}&rdquo;
