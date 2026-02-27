@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 const BODY = "Georgia, 'Times New Roman', serif"
 
 interface CandidateCardProps {
@@ -30,10 +32,18 @@ export default function CandidateCard({
   meta,
 }: CandidateCardProps) {
   const dimmed = isAnyPicked && !isPicked
+  const [expanded, setExpanded] = useState(false)
+
+  const SUMMARY_LINES = 3
+  const WHY_LINES = 2
+
+  // Rough heuristic: only show toggle if text is likely truncated
+  const summaryLong = summary.length > 200
+  const whyLong = whyItMatters.length > 120
 
   return (
     <div
-      className={`rounded border p-4 bg-surface transition-all duration-200 ${
+      className={`rounded border p-5 bg-surface transition-all duration-200 ${
         isPicked
           ? 'border-accent shadow-sm'
           : dimmed
@@ -51,7 +61,7 @@ export default function CandidateCard({
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="text-sm font-bold text-primary leading-snug line-clamp-2" style={{ fontFamily: BODY }}>
+            <h3 className="text-sm font-bold text-primary leading-snug" style={{ fontFamily: BODY }}>
               {url ? (
                 <a href={url} target="_blank" rel="noopener noreferrer" className="hover:text-sky">
                   {title}
@@ -62,13 +72,35 @@ export default function CandidateCard({
             </h3>
             {score !== null && score !== undefined && (
               <span className="flex-shrink-0 rounded-full bg-sky text-white px-2 py-0.5 text-xs font-bold" style={{ fontFamily: BODY }}>
-                {score}/10
+                {score}
               </span>
             )}
           </div>
           {meta && <p className="mt-0.5 text-xs text-muted" style={{ fontFamily: BODY }}>{meta}</p>}
-          <p className="mt-1.5 text-xs text-primary/70 line-clamp-2" style={{ fontFamily: BODY }}>{summary}</p>
-          <p className="mt-1 text-xs text-muted italic line-clamp-1" style={{ fontFamily: BODY }}>{whyItMatters}</p>
+
+          <p
+            className={`mt-1.5 text-sm text-primary/70 ${expanded ? '' : `line-clamp-${SUMMARY_LINES}`}`}
+            style={{ fontFamily: BODY }}
+          >
+            <span className="font-semibold">Description: </span>{summary}
+          </p>
+
+          <p
+            className={`mt-1 text-sm text-accent italic ${expanded ? '' : `line-clamp-${WHY_LINES}`}`}
+            style={{ fontFamily: BODY }}
+          >
+            <span className="font-semibold">Why this Matters: </span>{whyItMatters}
+          </p>
+
+          {(summaryLong || whyLong) && (
+            <button
+              onClick={() => setExpanded(e => !e)}
+              className="mt-1 text-xs text-accent hover:underline focus:outline-none"
+              style={{ fontFamily: BODY }}
+            >
+              {expanded ? 'less ↑' : 'more ↓'}
+            </button>
+          )}
         </div>
       </div>
 

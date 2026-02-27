@@ -225,7 +225,7 @@ function TodayDashboard() {
                   title={n.title}
                   summary={n.summary}
                   whyItMatters={n.why_it_matters}
-                  score={n.fit_score}
+                  score={n.score}
                   isPicked={picks.news?.id === n.id}
                   isAnyPicked={picks.news !== null}
                   onPick={() => handlePick('ai_news_top5', n.id, 'news', n)}

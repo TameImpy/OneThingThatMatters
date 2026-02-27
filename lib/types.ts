@@ -31,9 +31,10 @@ export interface AiNewsTop5 {
   title: string
   url: string
   source: string
+  item_main: string | null
   summary: string
   why_it_matters: string
-  fit_score: number | null
+  score: number | null
   picked: boolean
   picked_at: string | null
   created_at: string
