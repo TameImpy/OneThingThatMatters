@@ -5,6 +5,7 @@ import type {
   AiPaperCandidate,
   StoryOfPastCandidate,
   NewsletterDailyArt,
+  DailyQuote,
 } from './types'
 
 const resendApiKey = process.env.RESEND_API_KEY
@@ -21,6 +22,7 @@ interface IssueData {
   research: AiPaperCandidate | null
   story: StoryOfPastCandidate | null
   art: NewsletterDailyArt | null
+  quote?: DailyQuote | null
 }
 
 function formatDate(dateStr: string): string {
@@ -44,7 +46,7 @@ function firstSentence(text: string | null | undefined): string {
 }
 
 export function renderNewsletterHTML(data: IssueData): string {
-  const { issue_date, issueNumber, pov, watch, news, research, story, art } = data
+  const { issue_date, issueNumber, pov, watch, news, research, story, art, quote } = data
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://onethingmatters.com'
 
   const c = {
@@ -219,15 +221,18 @@ export function renderNewsletterHTML(data: IssueData): string {
         ${banner(story.year_offset ? `One Thing That Mattered This Time ${story.year_offset} Years Ago` : '&hellip; And One Thing That Mattered In The Past')}
         ${section(`
           ${muted(story.this_time_line)}
-          ${bulletList(story.event_summary, story.why_it_mattered)}
+          ${title(story.event_summary)}
+          ${body(story.why_it_mattered)}
+          ${story.echo_today ? body(story.echo_today) : ''}
         `)}` : ''}
 
+        ${quote ? `
         <!-- Quote of the Day -->
         ${banner('Quote of the Day')}
         ${section(`
-          <p style="font-family:${f.body};font-size:18px;font-style:italic;color:${c.textPrimary};line-height:1.6;margin:0 0 12px 0;">&ldquo;Placeholder quote goes here.&rdquo;</p>
-          <p style="font-family:${f.body};font-size:13px;color:${c.textMuted};margin:0;">&mdash; Author Name</p>
-        `)}
+          <p style="font-family:${f.body};font-size:18px;font-style:italic;color:${c.textPrimary};line-height:1.6;margin:0 0 12px 0;">&ldquo;${e(quote.text)}&rdquo;</p>
+          <p style="font-family:${f.body};font-size:13px;color:${c.textMuted};margin:0;">&mdash; ${e(quote.author)}${quote.attribution ? `, ${e(quote.attribution)}` : ''}</p>
+        `)}` : ''}
 
         <!-- Footer -->
         <tr><td style="background:${c.ink};padding:20px 32px;text-align:center;">

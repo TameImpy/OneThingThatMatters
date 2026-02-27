@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase, getActiveSubscribers } from '@/lib/supabase'
 import { resend, renderNewsletterHTML } from '@/lib/resend'
-import type { PublishRequest, NewsletterDailyArt } from '@/lib/types'
+import type { PublishRequest, NewsletterDailyArt, DailyQuote } from '@/lib/types'
 
 export async function POST(req: NextRequest) {
   let body: unknown
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { issue_date, picks, art_id, pov } = body as Partial<PublishRequest> & { art_id?: string | null; pov?: string | null }
+  const { issue_date, picks, art_id, pov, quote } = body as Partial<PublishRequest> & { art_id?: string | null; pov?: string | null; quote?: DailyQuote | null }
 
   if (!issue_date) {
     return NextResponse.json({ success: false, error: 'Missing issue_date' }, { status: 400 })
@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
       research: picks.research,
       story: picks.story,
       art,
+      quote: quote ?? null,
     })
 
     // Send via Resend batch API

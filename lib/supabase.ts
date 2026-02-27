@@ -15,20 +15,25 @@ export const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 })
 
 /**
- * Fetch rows from a table updated in the last 3 days.
- * @param dateColumn  - timestamp column to filter on (default: updated_at)
+ * Fetch rows for a specific date (defaults to today).
+ * @param dateColumn  - column to filter on (cast to ::date for timestamp columns)
  * @param orderField  - column to sort descending; null skips ordering (default: fit_score)
+ * @param targetDate  - ISO date string YYYY-MM-DD (default: today)
  */
 export async function getTodayItems<T>(
   table: CategoryTable,
-  { dateColumn = 'updated_at', orderField = 'fit_score' as string | null } = {}
+  {
+    dateColumn = 'updated_at',
+    orderField = 'fit_score' as string | null,
+    targetDate,
+  }: { dateColumn?: string; orderField?: string | null; targetDate?: string } = {}
 ): Promise<T[]> {
-  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+  const date = targetDate ?? new Date().toISOString().split('T')[0]
 
   let query = supabase
     .from(table)
     .select('*')
-    .gte(dateColumn, threeDaysAgo)
+    .filter(`${dateColumn}::date`, 'eq', date)
 
   if (orderField) {
     query = query.order(orderField, { ascending: false, nullsFirst: false })
@@ -45,9 +50,6 @@ export async function getTodayItems<T>(
  */
 export async function pickItem(table: CategoryTable, id: string): Promise<void> {
   const isStories = table === 'stories_of_past_candidates'
-  const isArt = table === 'newsletter_daily_art'
-
-  if (isArt) return // art is auto-included, no pick needed
 
   const update = isStories
     ? { selected: true }

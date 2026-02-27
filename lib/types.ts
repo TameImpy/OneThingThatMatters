@@ -65,6 +65,7 @@ export interface StoryOfPastCandidate {
   this_time_line: string
   event_summary: string
   why_it_mattered: string
+  echo_today: string | null
   year_offset: number | null
   fit_score: number | null
   selected: boolean
@@ -104,6 +105,15 @@ export interface Subscriber {
   email: string
   subscribed_at: string
   active: boolean
+}
+
+// ─── Quote of the Day ─────────────────────────────────────────────────────────
+
+export interface DailyQuote {
+  text: string
+  author: string        // e.g. "Richard Feynman, Physicist"
+  attribution: string   // e.g. "Lecture at Caltech, 1964"
+  relevance: string     // why it connects to today's content
 }
 
 // ─── API helpers ──────────────────────────────────────────────────────────────

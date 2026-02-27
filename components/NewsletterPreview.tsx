@@ -6,6 +6,7 @@ import type {
   AiPaperCandidate,
   StoryOfPastCandidate,
   NewsletterDailyArt,
+  DailyQuote,
 } from '@/lib/types'
 
 interface NewsletterPreviewProps {
@@ -17,6 +18,7 @@ interface NewsletterPreviewProps {
   research: AiPaperCandidate | null
   story: StoryOfPastCandidate | null
   art: NewsletterDailyArt | null
+  quote?: DailyQuote | null
 }
 
 const DISPLAY = "'Barlow Condensed', Impact, 'Arial Narrow', sans-serif"
@@ -158,6 +160,7 @@ export default function NewsletterPreview({
   research,
   story,
   art,
+  quote,
 }: NewsletterPreviewProps) {
   const isEmpty = !watch && !news && !research && !story
 
@@ -368,21 +371,27 @@ export default function NewsletterPreview({
           <SectionBanner label={story.year_offset ? `One Thing That Mattered This Time ${story.year_offset} Years Ago` : '… And One Thing That Mattered In The Past'} />
           <ContentSection>
             {story.this_time_line && <Muted>{story.this_time_line}</Muted>}
-            <BulletList items={[story.event_summary, story.why_it_mattered]} />
+            <Title>{story.event_summary}</Title>
+            <Body>{story.why_it_mattered}</Body>
+            {story.echo_today && <Body>{story.echo_today}</Body>}
           </ContentSection>
         </>
       )}
 
       {/* Quote of the Day */}
-      <SectionBanner label="Quote of the Day" />
-      <ContentSection>
-        <p style={{ fontFamily: BODY, fontSize: '18px', fontStyle: 'italic', color: PRIMARY, lineHeight: 1.6, margin: '0 0 12px 0' }}>
-          &ldquo;Placeholder quote goes here.&rdquo;
-        </p>
-        <p style={{ fontFamily: BODY, fontSize: '13px', color: MUTED, margin: 0 }}>
-          &mdash; Author Name
-        </p>
-      </ContentSection>
+      {quote && (
+        <>
+          <SectionBanner label="Quote of the Day" />
+          <ContentSection>
+            <p style={{ fontFamily: BODY, fontSize: '18px', fontStyle: 'italic', color: PRIMARY, lineHeight: 1.6, margin: '0 0 12px 0' }}>
+              &ldquo;{quote.text}&rdquo;
+            </p>
+            <p style={{ fontFamily: BODY, fontSize: '13px', color: MUTED, margin: 0 }}>
+              &mdash; {quote.author}{quote.attribution ? `, ${quote.attribution}` : ''}
+            </p>
+          </ContentSection>
+        </>
+      )}
 
       {/* Footer */}
       <div style={{ background: INK, padding: '20px 32px', textAlign: 'center' }}>

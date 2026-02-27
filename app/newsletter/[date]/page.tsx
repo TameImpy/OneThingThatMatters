@@ -9,6 +9,7 @@ import type {
   AiPaperCandidate,
   StoryOfPastCandidate,
   NewsletterDailyArt,
+  DailyQuote,
 } from '@/lib/types'
 
 const DISPLAY = "'Barlow Condensed', Impact, 'Arial Narrow', sans-serif"
@@ -36,12 +37,23 @@ export default function NewsletterPage({ params }: PageProps) {
     story: null,
   })
   const [art, setArt] = useState<NewsletterDailyArt | null>(null)
+  const [artPicked, setArtPicked] = useState(false)
   const [issueNumber, setIssueNumber] = useState<number>(1)
   const [pov, setPov] = useState<string>('')
   const [loading, setLoading] = useState(true)
+  const [selectedQuote, setSelectedQuote] = useState<DailyQuote | null>(null)
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const storedQuote = sessionStorage.getItem(`quote-${date}`)
+    if (storedQuote) {
+      try { setSelectedQuote(JSON.parse(storedQuote) as DailyQuote) } catch { /* ignore */ }
+    }
+    const storedArt = sessionStorage.getItem(`art-${date}`)
+    if (storedArt) setArtPicked(true)
+  }, [date])
 
   useEffect(() => {
     async function fetchAll() {
@@ -53,7 +65,7 @@ export default function NewsletterPage({ params }: PageProps) {
           fetch(`/api/today/research${qs}`),
           fetch(`/api/today/story${qs}`),
           fetch(`/api/today/art${qs}`),
-          fetch('/api/newsletter/issue-count'),
+          fetch(`/api/newsletter/issue-count?date=${date}`),
         ])
         const [wData, nData, rData, sData, aData, iData] = await Promise.all([
           wRes.json(), nRes.json(), rRes.json(), sRes.json(), aRes.json(), iRes.json(),
@@ -71,7 +83,7 @@ export default function NewsletterPage({ params }: PageProps) {
           story: pickedStory,
         })
         if (aData.success) setArt(aData.data)
-        setIssueNumber((iData.count ?? 0) + 1)
+        setIssueNumber(iData.issueNumber ?? 1)
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to load')
       } finally {
@@ -93,6 +105,7 @@ export default function NewsletterPage({ params }: PageProps) {
           picks,
           art_id: art?.id ?? null,
           pov: pov.trim() || null,
+          quote: selectedQuote,
         }),
       })
       const data = await res.json()
@@ -203,7 +216,8 @@ export default function NewsletterPage({ params }: PageProps) {
               news={picks.news}
               research={picks.research}
               story={picks.story}
-              art={art}
+              art={artPicked ? art : null}
+              quote={selectedQuote}
             />
           </>
         )}

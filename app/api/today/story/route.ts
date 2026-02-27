@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getTodayItems } from '@/lib/supabase'
 import type { StoryOfPastCandidate } from '@/lib/types'
 
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
+  const targetDate = req.nextUrl.searchParams.get('date') ?? undefined
   try {
-    const items = await getTodayItems<StoryOfPastCandidate>('stories_of_past_candidates', { orderField: null })
+    const items = await getTodayItems<StoryOfPastCandidate>('stories_of_past_candidates', { dateColumn: 'newsletter_date', orderField: null, targetDate })
     return NextResponse.json({ success: true, data: items })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'

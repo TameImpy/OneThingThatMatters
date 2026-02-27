@@ -6,6 +6,7 @@ import { Suspense } from 'react'
 import CandidateCard from '@/components/CandidateCard'
 import CategorySection from '@/components/CategorySection'
 import NewsletterPreview from '@/components/NewsletterPreview'
+import QuoteCard from '@/components/QuoteCard'
 import type {
   WatchCandidate,
   AiNewsTop5,
@@ -13,6 +14,7 @@ import type {
   StoryOfPastCandidate,
   NewsletterDailyArt,
   CategoryTable,
+  DailyQuote,
 } from '@/lib/types'
 
 const DISPLAY = "'Barlow Condensed', Impact, 'Arial Narrow', sans-serif"
@@ -39,6 +41,7 @@ function TodayDashboard() {
   const [research, setResearch] = useState<AiPaperCandidate[]>([])
   const [stories, setStories] = useState<StoryOfPastCandidate[]>([])
   const [art, setArt] = useState<NewsletterDailyArt | null>(null)
+  const [issueNumber, setIssueNumber] = useState<number>(1)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -49,19 +52,28 @@ function TodayDashboard() {
     story: null,
   })
 
+  const [artPicked, setArtPicked] = useState(false)
+
+  const [quotes, setQuotes] = useState<DailyQuote[]>([])
+  const [quotesLoading, setQuotesLoading] = useState(false)
+  const [selectedQuote, setSelectedQuote] = useState<DailyQuote | null>(null)
+  const [customQuote, setCustomQuote] = useState('')
+  const [customAuthor, setCustomAuthor] = useState('')
+
   useEffect(() => {
     async function fetchAll() {
       try {
         const qs = `?date=${today}`
-        const [wRes, nRes, rRes, sRes, aRes] = await Promise.all([
+        const [wRes, nRes, rRes, sRes, aRes, iRes] = await Promise.all([
           fetch(`/api/today/watch${qs}`),
           fetch(`/api/today/news${qs}`),
           fetch(`/api/today/research${qs}`),
           fetch(`/api/today/story${qs}`),
           fetch(`/api/today/art${qs}`),
+          fetch(`/api/newsletter/issue-count?date=${today}`),
         ])
-        const [wData, nData, rData, sData, aData] = await Promise.all([
-          wRes.json(), nRes.json(), rRes.json(), sRes.json(), aRes.json(),
+        const [wData, nData, rData, sData, aData, iData] = await Promise.all([
+          wRes.json(), nRes.json(), rRes.json(), sRes.json(), aRes.json(), iRes.json(),
         ])
         if (wData.success) setWatches(wData.data)
         if (nData.success) setNews(nData.data)
@@ -69,6 +81,7 @@ function TodayDashboard() {
         if (rData.success) setResearch(rData.data)
         if (sData.success) setStories(sData.data)
         if (aData.success) setArt(aData.data)
+        setIssueNumber(iData.issueNumber ?? 1)
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to load content')
       } finally {
@@ -103,7 +116,43 @@ function TodayDashboard() {
     picks.watch !== null &&
     picks.news !== null &&
     picks.research !== null &&
-    picks.story !== null
+    picks.story !== null &&
+    artPicked
+
+  const activeQuote: DailyQuote | null = selectedQuote ?? (
+    customQuote.trim()
+      ? { text: customQuote, author: customAuthor, attribution: '', relevance: '' }
+      : null
+  )
+
+  useEffect(() => {
+    if (!allPicked) return
+    if (quotes.length > 0 || quotesLoading) return
+    setQuotesLoading(true)
+    fetch('/api/newsletter/quotes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        watch: picks.watch,
+        news: picks.news,
+        research: picks.research,
+        story: picks.story,
+      }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) setQuotes(data.quotes)
+      })
+      .finally(() => setQuotesLoading(false))
+  }, [allPicked])
+
+  useEffect(() => {
+    if (activeQuote) {
+      sessionStorage.setItem(`quote-${today}`, JSON.stringify(activeQuote))
+    } else {
+      sessionStorage.removeItem(`quote-${today}`)
+    }
+  }, [activeQuote, today])
 
   return (
     <div className="min-h-screen bg-page text-primary">
@@ -131,15 +180,15 @@ function TodayDashboard() {
           </div>
           <button
             onClick={() => router.push(`/newsletter/${today}`)}
-            disabled={!allPicked}
+            disabled={!allPicked || !activeQuote}
             className={`rounded px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
-              allPicked
+              allPicked && activeQuote
                 ? 'bg-accent text-white hover:bg-accent/90'
                 : 'bg-white/10 text-white/30 cursor-not-allowed'
             }`}
             style={{ fontFamily: BODY }}
           >
-            {allPicked ? 'Go to Publish →' : `Pick all 4 to publish`}
+            {!allPicked ? 'Pick all 4 to publish' : !activeQuote ? 'Select a quote to publish' : 'Go to Publish →'}
           </button>
         </div>
       </header>
@@ -251,7 +300,7 @@ function TodayDashboard() {
               ))}
             </CategorySection>
 
-            {/* Art (auto-included) */}
+            {/* Art */}
             {art && (
               <section className="mb-8">
                 <div className="bg-ink px-6 py-3 flex items-center justify-between mb-3">
@@ -268,17 +317,99 @@ function TodayDashboard() {
                   }}>
                     ◆&nbsp;Daily Art
                   </p>
-                  <span className="text-xs font-bold text-white/60 uppercase tracking-widest" style={{ fontFamily: BODY }}>
-                    auto-included
-                  </span>
                 </div>
-                <div className="rounded border border-border bg-surface overflow-hidden">
+                <div className={`rounded border bg-surface overflow-hidden transition-all duration-200 ${artPicked ? 'border-accent shadow-sm' : 'border-border hover:border-accent/50'}`}>
                   <img src={art.image_url} alt={art.caption ?? ''} className="w-full max-h-48 object-cover" />
                   {(art.caption || art.artist_name) && (
                     <div className="px-4 py-2 text-xs text-muted italic" style={{ fontFamily: BODY }}>
                       {art.caption}{art.artist_name && ` — ${art.artist_name}`}
                     </div>
                   )}
+                  <div className="px-4 py-3 flex justify-end border-t border-border">
+                    <button
+                      onClick={() => {
+                        setArtPicked(true)
+                        sessionStorage.setItem(`art-${today}`, art.id)
+                      }}
+                      disabled={artPicked}
+                      className={`rounded px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
+                        artPicked
+                          ? 'bg-accent text-white cursor-default'
+                          : 'bg-accent/10 text-accent hover:bg-accent hover:text-white'
+                      }`}
+                      style={{ fontFamily: BODY }}
+                    >
+                      {artPicked ? '✓ Picked' : 'Pick'}
+                    </button>
+                  </div>
+                </div>
+              </section>
+            )}
+            {/* Quote of the Day — appears once all 4 are picked */}
+            {allPicked && (
+              <section className="mb-8">
+                <div className="bg-accent px-6 py-3 flex items-center justify-between mb-3">
+                  <p style={{
+                    fontFamily: DISPLAY,
+                    fontWeight: 900,
+                    fontStyle: 'italic',
+                    fontSize: '22px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '-0.01em',
+                    lineHeight: 1,
+                    color: '#FFFFFF',
+                    margin: 0,
+                  }}>
+                    ◆&nbsp;Quote of the Day
+                  </p>
+                </div>
+
+                {quotesLoading && (
+                  <p className="text-xs text-muted italic animate-pulse py-4 text-center" style={{ fontFamily: BODY }}>
+                    Generating quotes…
+                  </p>
+                )}
+
+                {!quotesLoading && quotes.length > 0 && (
+                  <div className="flex flex-col gap-3">
+                    {quotes.map((q, i) => (
+                      <QuoteCard
+                        key={i}
+                        quote={q}
+                        isPicked={selectedQuote === q}
+                        isAnyPicked={selectedQuote !== null || customQuote.trim() !== ''}
+                        onPick={() => {
+                          setSelectedQuote(q)
+                          setCustomQuote('')
+                          setCustomAuthor('')
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-4 border-t border-border pt-4">
+                  <p className="text-xs font-bold uppercase tracking-widest text-muted mb-2" style={{ fontFamily: BODY, letterSpacing: '0.10em' }}>
+                    None of these? Write your own:
+                  </p>
+                  <textarea
+                    value={customQuote}
+                    onChange={e => {
+                      setCustomQuote(e.target.value)
+                      setSelectedQuote(null)
+                    }}
+                    placeholder="Quote text…"
+                    rows={3}
+                    className="w-full rounded border border-border bg-surface px-3 py-2 text-sm text-primary placeholder-muted/50 focus:outline-none focus:border-accent/60 resize-none mb-2"
+                    style={{ fontFamily: BODY }}
+                  />
+                  <input
+                    value={customAuthor}
+                    onChange={e => setCustomAuthor(e.target.value)}
+                    placeholder="Author, Role — Context/year"
+                    className="w-full rounded border border-border bg-surface px-3 py-2 text-sm text-primary placeholder-muted/50 focus:outline-none focus:border-accent/60"
+                    style={{ fontFamily: BODY }}
+                  />
                 </div>
               </section>
             )}
@@ -286,18 +417,22 @@ function TodayDashboard() {
 
           {/* Right: newsletter preview */}
           <div className="w-80 flex-shrink-0 xl:w-96">
-            <div className="sticky top-24">
-              <p className="text-xs font-bold uppercase tracking-widest text-ink mb-3" style={{ fontFamily: BODY, letterSpacing: '0.12em' }}>
+            <div className="sticky top-24 flex flex-col" style={{ maxHeight: 'calc(100vh - 7rem)' }}>
+              <p className="text-xs font-bold uppercase tracking-widest text-ink mb-3 flex-shrink-0" style={{ fontFamily: BODY, letterSpacing: '0.12em' }}>
                 Newsletter Preview
               </p>
+              <div className="overflow-y-auto flex-1">
               <NewsletterPreview
                 issueDate={today}
+                issueNumber={issueNumber}
                 watch={picks.watch}
                 news={picks.news}
                 research={picks.research}
                 story={picks.story}
-                art={art}
+                art={artPicked ? art : null}
+                quote={activeQuote}
               />
+              </div>
             </div>
           </div>
         </div>
