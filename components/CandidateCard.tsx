@@ -71,7 +71,7 @@ export default function CandidateCard({
               )}
             </h3>
             {score !== null && score !== undefined && (
-              <span className="flex-shrink-0 rounded-full bg-sky text-white px-2 py-0.5 text-xs font-bold" style={{ fontFamily: BODY }}>
+              <span className="flex-shrink-0 rounded-full bg-sky text-white px-3 py-1 text-sm font-bold" style={{ fontFamily: BODY }}>
                 {score}
               </span>
             )}
