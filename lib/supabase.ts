@@ -26,14 +26,22 @@ export async function getTodayItems<T>(
     dateColumn = 'updated_at',
     orderField = 'fit_score' as string | null,
     targetDate,
-  }: { dateColumn?: string; orderField?: string | null; targetDate?: string } = {}
+    isTimestamp = false,
+  }: { dateColumn?: string; orderField?: string | null; targetDate?: string; isTimestamp?: boolean } = {}
 ): Promise<T[]> {
   const date = targetDate ?? new Date().toISOString().split('T')[0]
 
-  let query = supabase
-    .from(table)
-    .select('*')
-    .filter(`${dateColumn}::date`, 'eq', date)
+  let query = supabase.from(table).select('*')
+
+  if (isTimestamp) {
+    // Timestamp columns: filter by day range to avoid cast issues
+    query = query
+      .gte(dateColumn, `${date}T00:00:00.000Z`)
+      .lt(dateColumn, `${date}T23:59:59.999Z`)
+  } else {
+    // Pure date columns: simple equality
+    query = query.eq(dateColumn, date)
+  }
 
   if (orderField) {
     query = query.order(orderField, { ascending: false, nullsFirst: false })

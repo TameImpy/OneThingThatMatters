@@ -19,6 +19,7 @@ interface NewsletterPreviewProps {
   story: StoryOfPastCandidate | null
   art: NewsletterDailyArt | null
   quote?: DailyQuote | null
+  noiseTitles?: string[]
 }
 
 const DISPLAY = "'Barlow Condensed', Impact, 'Arial Narrow', sans-serif"
@@ -161,6 +162,7 @@ export default function NewsletterPreview({
   story,
   art,
   quote,
+  noiseTitles,
 }: NewsletterPreviewProps) {
   const isEmpty = !watch && !news && !research && !story
 
@@ -391,6 +393,30 @@ export default function NewsletterPreview({
             </p>
           </ContentSection>
         </>
+      )}
+
+      {/* The Noise */}
+      {noiseTitles && noiseTitles.length > 0 && (
+        <div style={{ background: '#060A14', padding: '28px 32px' }}>
+          <p style={{
+            fontFamily: DISPLAY,
+            fontWeight: 700,
+            fontStyle: 'italic',
+            fontSize: '13px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            color: '#4B5563',
+            margin: '0 0 8px 0',
+          }}>
+            ◆ The Noise
+          </p>
+          <p style={{ fontFamily: BODY, fontSize: '12px', color: '#374151', fontStyle: 'italic', margin: '0 0 18px 0' }}>
+            Everything we filtered out today, so you didn&rsquo;t have to.
+          </p>
+          <p style={{ fontFamily: BODY, fontSize: '11px', color: '#374151', lineHeight: 2.2, margin: 0 }}>
+            {noiseTitles.join(' \u00A0·\u00A0 ')}
+          </p>
+        </div>
       )}
 
       {/* Footer */}

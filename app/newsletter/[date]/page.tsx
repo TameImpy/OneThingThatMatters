@@ -36,6 +36,7 @@ export default function NewsletterPage({ params }: PageProps) {
     research: null,
     story: null,
   })
+  const [noiseTitles, setNoiseTitles] = useState<string[]>([])
   const [art, setArt] = useState<NewsletterDailyArt | null>(null)
   const [artPicked, setArtPicked] = useState(false)
   const [issueNumber, setIssueNumber] = useState<number>(1)
@@ -82,6 +83,14 @@ export default function NewsletterPage({ params }: PageProps) {
           research: pickedResearch,
           story: pickedStory,
         })
+
+        const noise: string[] = [
+          ...(wData.data ?? []).filter((w: WatchCandidate) => !w.picked).map((w: WatchCandidate) => w.title),
+          ...(nData.data ?? []).filter((n: AiNewsTop5) => !n.picked).map((n: AiNewsTop5) => n.title),
+          ...(rData.data ?? []).filter((r: AiPaperCandidate) => !r.picked).map((r: AiPaperCandidate) => r.title),
+          ...(sData.data ?? []).filter((s: StoryOfPastCandidate) => !s.selected).map((s: StoryOfPastCandidate) => s.event_summary),
+        ]
+        setNoiseTitles(noise)
         if (aData.success) setArt(aData.data)
         setIssueNumber(iData.issueNumber ?? 1)
       } catch (e) {
@@ -106,6 +115,7 @@ export default function NewsletterPage({ params }: PageProps) {
           art_id: art?.id ?? null,
           pov: pov.trim() || null,
           quote: selectedQuote,
+          noiseTitles,
         }),
       })
       const data = await res.json()
@@ -218,6 +228,7 @@ export default function NewsletterPage({ params }: PageProps) {
               story={picks.story}
               art={artPicked ? art : null}
               quote={selectedQuote}
+              noiseTitles={noiseTitles}
             />
           </>
         )}

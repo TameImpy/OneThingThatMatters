@@ -5,7 +5,7 @@ import type { WatchCandidate } from '@/lib/types'
 export async function GET(req: NextRequest) {
   const targetDate = req.nextUrl.searchParams.get('date') ?? undefined
   try {
-    const items = await getTodayItems<WatchCandidate>('watch_candidates', { dateColumn: 'ingested_at', targetDate })
+    const items = await getTodayItems<WatchCandidate>('watch_candidates', { dateColumn: 'ingested_at', isTimestamp: true, targetDate })
     return NextResponse.json({ success: true, data: items })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error'

@@ -23,6 +23,7 @@ interface IssueData {
   story: StoryOfPastCandidate | null
   art: NewsletterDailyArt | null
   quote?: DailyQuote | null
+  noiseTitles?: string[]
 }
 
 function formatDate(dateStr: string): string {
@@ -46,7 +47,7 @@ function firstSentence(text: string | null | undefined): string {
 }
 
 export function renderNewsletterHTML(data: IssueData): string {
-  const { issue_date, issueNumber, pov, watch, news, research, story, art, quote } = data
+  const { issue_date, issueNumber, pov, watch, news, research, story, art, quote, noiseTitles } = data
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://onethingmatters.com'
 
   const c = {
@@ -233,6 +234,14 @@ export function renderNewsletterHTML(data: IssueData): string {
           <p style="font-family:${f.body};font-size:18px;font-style:italic;color:${c.textPrimary};line-height:1.6;margin:0 0 12px 0;">&ldquo;${e(quote.text)}&rdquo;</p>
           <p style="font-family:${f.body};font-size:13px;color:${c.textMuted};margin:0;">&mdash; ${e(quote.author)}${quote.attribution ? `, ${e(quote.attribution)}` : ''}</p>
         `)}` : ''}
+
+        ${noiseTitles && noiseTitles.length > 0 ? `
+        <!-- The Noise -->
+        <tr><td style="background:#060A14;padding:28px 32px;">
+          <p style="font-family:${f.display};font-weight:700;font-style:italic;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;color:#4B5563;margin:0 0 8px 0;">&#9670; The Noise</p>
+          <p style="font-family:${f.body};font-size:12px;color:#374151;font-style:italic;margin:0 0 18px 0;">Everything we filtered out today, so you didn&rsquo;t have to.</p>
+          <p style="font-family:${f.body};font-size:11px;color:#374151;line-height:2.2;margin:0;">${noiseTitles.map(t => e(t)).join(' &nbsp;&middot;&nbsp; ')}</p>
+        </td></tr>` : ''}
 
         <!-- Footer -->
         <tr><td style="background:${c.ink};padding:20px 32px;text-align:center;">
