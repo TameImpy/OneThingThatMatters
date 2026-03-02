@@ -81,6 +81,8 @@ export interface NewsletterDailyArt {
   image_url: string
   caption: string | null
   artist_name: string | null
+  bio: string | null
+  artist_tagline: string | null
   created_at: string
 }
 
@@ -96,6 +98,8 @@ export interface NewsletterIssue {
   art_id: string | null
   sent_at: string | null
   subscriber_count: number | null
+  open_count: number | null
+  click_count: number | null
   created_at: string
 }
 
@@ -104,6 +108,7 @@ export interface NewsletterIssue {
 export interface Subscriber {
   id: string
   email: string
+  name: string | null
   subscribed_at: string
   active: boolean
 }

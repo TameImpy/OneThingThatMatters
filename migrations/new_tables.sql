@@ -3,9 +3,13 @@
 create table if not exists subscribers (
   id uuid primary key default gen_random_uuid(),
   email text unique not null,
+  name text,
   subscribed_at timestamptz default now(),
   active boolean default true
 );
+
+-- Migration: add name column to existing subscribers table
+-- ALTER TABLE subscribers ADD COLUMN IF NOT EXISTS name text;
 
 create table if not exists newsletter_issues (
   id uuid primary key default gen_random_uuid(),

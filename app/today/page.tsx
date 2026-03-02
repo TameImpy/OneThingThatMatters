@@ -3,6 +3,11 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+
+async function signOut(router: ReturnType<typeof useRouter>) {
+  await fetch('/api/auth/logout', { method: 'POST' })
+  router.push('/login')
+}
 import CandidateCard from '@/components/CandidateCard'
 import CategorySection from '@/components/CategorySection'
 import NewsletterPreview from '@/components/NewsletterPreview'
@@ -178,18 +183,34 @@ function TodayDashboard() {
               Editorial Dashboard · {today}
             </p>
           </div>
-          <button
-            onClick={() => router.push(`/newsletter/${today}`)}
-            disabled={!allPicked || !activeQuote}
-            className={`rounded px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
-              allPicked && activeQuote
-                ? 'bg-accent text-white hover:bg-accent/90'
-                : 'bg-white/10 text-white/30 cursor-not-allowed'
-            }`}
-            style={{ fontFamily: BODY }}
-          >
-            {!allPicked ? 'Pick all 4 to publish' : !activeQuote ? 'Select a quote to publish' : 'Go to Publish →'}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push('/analytics')}
+              className="rounded px-3 py-1.5 text-xs text-white/40 hover:text-white/70 border border-white/10 hover:border-white/25 transition-colors"
+              style={{ fontFamily: BODY }}
+            >
+              Analytics →
+            </button>
+            <button
+              onClick={() => signOut(router)}
+              className="rounded px-3 py-1.5 text-xs text-white/40 hover:text-white/70 border border-white/10 hover:border-white/25 transition-colors"
+              style={{ fontFamily: BODY }}
+            >
+              Sign out
+            </button>
+            <button
+              onClick={() => router.push(`/newsletter/${today}`)}
+              disabled={!allPicked || !activeQuote}
+              className={`rounded px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+                allPicked && activeQuote
+                  ? 'bg-accent text-white hover:bg-accent/90'
+                  : 'bg-white/10 text-white/30 cursor-not-allowed'
+              }`}
+              style={{ fontFamily: BODY }}
+            >
+              {!allPicked ? 'Pick all 4 to publish' : !activeQuote ? 'Select a quote to publish' : 'Go to Publish →'}
+            </button>
+          </div>
         </div>
       </header>
 

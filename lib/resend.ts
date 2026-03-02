@@ -35,9 +35,10 @@ function formatDate(dateStr: string): string {
   })
 }
 
-function stripUrls(text: string | null | undefined): string {
-  if (!text) return ''
-  return text.replace(/\(?\s*https?:\/\/\S+\s*\)?/g, '').replace(/\s+/g, ' ').trim()
+function stripUrls(text: unknown): string {
+  if (text == null) return ''
+  const s = typeof text === 'string' ? text : String(text)
+  return s.replace(/\(?\s*https?:\/\/\S+\s*\)?/g, '').replace(/\s+/g, ' ').trim()
 }
 
 const NOISE_SIZES = [10, 12, 15, 18, 22, 26]
@@ -64,12 +65,100 @@ function firstSentence(text: string | null | undefined): string {
   return match ? match[0].trim() : text.slice(0, 140)
 }
 
+export function renderConfirmationEmailHTML(name: string | null, confirmUrl: string): string {
+  const greeting = name ? `Hi ${name},` : 'Hi there,'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://onethingmatters.com'
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Confirm your subscription</title>
+</head>
+<body style="margin:0;padding:0;background:#FFFFFF;font-family:Georgia,'Times New Roman',serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FFFFFF;">
+    <tr><td align="center">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+        <tr><td style="background:#537367;padding:20px 32px;text-align:center;">
+          <p style="font-family:'Barlow Condensed',Impact,'Arial Narrow',sans-serif;font-weight:900;font-style:italic;font-size:36px;text-transform:uppercase;letter-spacing:-0.02em;line-height:1;color:#FFFFFF;margin:0;">One Thing That Matters</p>
+        </td></tr>
+        <tr><td style="background:#FFFFFF;padding:32px;">
+          <p style="font-size:16px;color:#1A1A1A;margin:0 0 16px 0;line-height:1.6;">${greeting}</p>
+          <p style="font-size:16px;color:#1A1A1A;margin:0 0 24px 0;line-height:1.6;">Thanks for subscribing. Click the button below to confirm your email and activate your subscription.</p>
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr><td>
+            <a href="${confirmUrl}" style="display:inline-block;background:#E8522E;color:#FFFFFF;font-family:'Barlow Condensed',Impact,'Arial Narrow',sans-serif;font-weight:900;font-style:italic;font-size:20px;text-transform:uppercase;letter-spacing:0.01em;text-decoration:none;padding:12px 28px;border-radius:4px;">&#9670;&nbsp;Confirm subscription</a>
+          </td></tr></table>
+          <p style="font-size:13px;color:#6B7280;margin:24px 0 0 0;line-height:1.6;">Or copy and paste this URL into your browser:<br><a href="${confirmUrl}" style="color:#0EA5E9;word-break:break-all;">${confirmUrl}</a></p>
+          <p style="font-size:13px;color:#6B7280;margin:16px 0 0 0;">If you didn&rsquo;t request this, you can safely ignore this email.</p>
+        </td></tr>
+        <tr><td style="background:#537367;padding:16px 32px;text-align:center;">
+          <p style="font-size:12px;color:#9CA3AF;margin:0;">
+            <a href="${appUrl}/unsubscribe" style="color:#9CA3AF;text-decoration:underline;">Unsubscribe</a>
+            &nbsp;&middot;&nbsp;One Thing That Matters
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
+
+export function renderWelcomeEmailHTML(name: string | null): string {
+  const greeting = name ? `Welcome, ${name}.` : 'Welcome.'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://onethingmatters.com'
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Welcome to One Thing That Matters</title>
+</head>
+<body style="margin:0;padding:0;background:#FFFFFF;font-family:Georgia,'Times New Roman',serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FFFFFF;">
+    <tr><td align="center">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+        <tr><td style="background:#537367;padding:20px 32px;text-align:center;">
+          <p style="font-family:'Barlow Condensed',Impact,'Arial Narrow',sans-serif;font-weight:900;font-style:italic;font-size:36px;text-transform:uppercase;letter-spacing:-0.02em;line-height:1;color:#FFFFFF;margin:0;">One Thing That Matters</p>
+          <p style="font-family:Georgia,'Times New Roman',serif;font-size:13px;color:rgba(255,255,255,0.75);margin:8px 0 0 0;">One signal in AI. Monday to Friday. Every Angle.</p>
+        </td></tr>
+        <tr><td style="background:#E8522E;padding:20px 32px;text-align:center;">
+          <p style="font-family:'Barlow Condensed',Impact,'Arial Narrow',sans-serif;font-weight:900;font-style:italic;font-size:32px;text-transform:uppercase;color:#FFFFFF;margin:0;">&#9670;&nbsp;${greeting}</p>
+        </td></tr>
+        <tr><td style="background:#FFFFFF;padding:32px;">
+          <p style="font-size:16px;color:#1A1A1A;margin:0 0 16px 0;line-height:1.7;">You&rsquo;re now subscribed to <strong>One Thing That Matters</strong> &mdash; a daily newsletter that cuts through the AI noise.</p>
+          <p style="font-size:16px;color:#1A1A1A;margin:0 0 16px 0;line-height:1.7;">Every weekday morning you&rsquo;ll get one handpicked signal in AI: one article, one paper, one video, and one story from the past &mdash; each chosen for what it actually means, not just what happened.</p>
+          <p style="font-size:16px;color:#1A1A1A;margin:0 0 0 0;line-height:1.7;">Your first issue arrives tomorrow morning.</p>
+        </td></tr>
+        <tr><td style="background:#537367;padding:16px 32px;text-align:center;">
+          <p style="font-size:12px;color:#9CA3AF;margin:0;">
+            <a href="${appUrl}/unsubscribe?email={{email}}" style="color:#9CA3AF;text-decoration:underline;">Unsubscribe</a>
+            &nbsp;&middot;&nbsp;One Thing That Matters
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
+
 export function renderNewsletterHTML(data: IssueData): string {
   const { issue_date, issueNumber, pov, watch, news, research, story, art, quote, noiseTitles } = data
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://onethingmatters.com'
-  const noiseHtml = noiseTitles && noiseTitles.length > 0
-    ? noiseTitles.map((t, i) =>
-        `<span style="font-family:${`Georgia,'Times New Roman',serif`};font-size:${noiseSize(t, i)}px;color:${noiseColor(t, i)};position:relative;top:${noiseOffset(t, i)}px;">${t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/@/g, '&#64;')}</span>${i < noiseTitles.length - 1 ? `<span style="font-family:Georgia,'Times New Roman',serif;font-size:10px;color:#374151;">&nbsp;&middot;&nbsp;</span>` : ''}`
+
+  // Escape user/AI content before embedding in HTML.
+  // &#64; prevents email clients from auto-detecting @ as an email address.
+  const e = (text: unknown): string => {
+    if (text == null) return ''
+    const s = typeof text === 'string' ? text : String(text)
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/@/g, '&#64;')
+  }
+
+  const filteredNoise = (noiseTitles ?? []).filter((t): t is string => !!t)
+  const noiseHtml = filteredNoise.length > 0
+    ? filteredNoise.map((t, i) =>
+        `<span style="font-family:${`Georgia,'Times New Roman',serif`};font-size:${noiseSize(t, i)}px;color:${noiseColor(t, i)};position:relative;top:${noiseOffset(t, i)}px;">${e(t)}</span>${i < filteredNoise.length - 1 ? `<span style="font-family:Georgia,'Times New Roman',serif;font-size:10px;color:#374151;">&nbsp;&middot;&nbsp;</span>` : ''}`
       ).join('')
     : null
 
@@ -96,11 +185,6 @@ export function renderNewsletterHTML(data: IssueData): string {
   // Plain white content row — no card border, no inner table
   const section = (content: string) =>
     `<tr><td style="background:${c.white};padding:24px 32px;">${content}</td></tr>`
-
-  // Escape user/AI content before embedding in HTML.
-  // &#64; prevents email clients from auto-detecting @ as an email address.
-  const e = (text: string): string =>
-    text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/@/g, '&#64;')
 
   const scoreBadge = (score: number | null) =>
     score != null
@@ -134,8 +218,10 @@ export function renderNewsletterHTML(data: IssueData): string {
       ? `<p style="font-family:${f.body};font-size:13px;color:${c.textMuted};margin:0 0 12px 0;">${e(text)}</p>`
       : ''
 
-  const cta = (href: string, text: string) =>
-    `<a href="${href}" style="font-family:${f.body};font-size:14px;color:${c.sky};text-decoration:underline;">${text}</a>`
+  const cta = (href: string, text: string) => {
+    const trackUrl = `${appUrl}/api/track/click?date=${encodeURIComponent(issue_date)}&url=${encodeURIComponent(href)}`
+    return `<a href="${trackUrl}" style="font-family:${f.body};font-size:14px;color:${c.sky};text-decoration:underline;">${text}</a>`
+  }
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -153,7 +239,7 @@ export function renderNewsletterHTML(data: IssueData): string {
         <!-- Masthead -->
         <tr><td style="background:${c.ink};padding:18px 32px 14px 32px;text-align:center;">
           <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:48px;text-transform:uppercase;letter-spacing:-0.02em;line-height:1;color:${c.white};margin:0 0 6px 0;">One Thing That Matters</p>
-          <p style="font-family:${f.body};font-size:14px;color:${c.white};opacity:0.9;margin:0 0 10px 0;">One signal in AI. Every day. Every Angle.</p>
+          <p style="font-family:${f.body};font-size:14px;color:${c.white};opacity:0.9;margin:0 0 10px 0;">One signal in AI. Monday to Friday. Every Angle.</p>
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
             <tr>
               <td style="vertical-align:bottom;text-align:left;width:50%;">
@@ -204,10 +290,16 @@ export function renderNewsletterHTML(data: IssueData): string {
 
         ${art ? `
         <!-- Art block -->
+        ${banner("Today's AI Art")}
         <tr><td style="background:${c.white};padding:0;">
-          <img src="${art.image_url}" alt="${art.caption ?? ''}" width="600" style="display:block;width:100%;max-height:260px;object-fit:cover;">
-          ${art.caption || art.artist_name ? `<p style="font-family:${f.body};font-size:13px;color:${c.textMuted};font-style:italic;margin:0;padding:8px 32px;">${art.caption ?? ''}${art.artist_name ? ` &mdash; ${art.artist_name}` : ''}</p>` : ''}
-        </td></tr>` : ''}
+          <img src="${art.image_url}" alt="${art.caption ?? ''}" width="600" style="display:block;width:100%;max-height:300px;object-fit:cover;">
+        </td></tr>
+        ${section(`
+          ${art.artist_tagline ? `<p style="font-family:${f.body};font-size:18px;font-style:italic;color:${c.textPrimary};line-height:1.5;margin:0 0 14px 0;">${e(art.artist_tagline)}</p>` : ''}
+          ${art.caption ? `<p style="font-family:${f.body};font-size:15px;color:${c.textPrimary};line-height:1.7;margin:0 0 16px 0;">${e(art.caption)}</p>` : ''}
+          ${art.artist_name ? `<p style="font-family:${f.body};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${c.textMuted};margin:0 0 6px 0;">${e(art.artist_name)}</p>` : ''}
+          ${art.bio ? `<p style="font-family:${f.body};font-size:13px;font-style:italic;color:${c.textMuted};line-height:1.6;margin:0;">${e(art.bio)}</p>` : ''}
+        `)}` : ''}
 
         ${news ? `
         ${banner('One Article That Matters')}
@@ -248,12 +340,13 @@ export function renderNewsletterHTML(data: IssueData): string {
 
         ${quote ? `
         <!-- Quote of the Day -->
-        <tr><td style="background:${c.accent};padding:18px 32px;text-align:center;">
-          <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
-            <td style="width:56px;text-align:left;vertical-align:middle;"><span style="font-family:Georgia,serif;font-size:72px;font-weight:900;color:rgba(255,255,255,0.3);line-height:1;">&ldquo;</span></td>
-            <td style="text-align:center;vertical-align:middle;"><p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:36px;text-transform:uppercase;letter-spacing:-0.01em;line-height:1;color:${c.white};margin:0;">Quote of the Day</p></td>
-            <td style="width:56px;text-align:right;vertical-align:middle;"><span style="font-family:Georgia,serif;font-size:72px;font-weight:900;color:rgba(255,255,255,0.3);line-height:1;">&rdquo;</span></td>
-          </tr></table>
+        <tr><td style="background:${c.accent};padding:22px 32px;text-align:center;position:relative;overflow:hidden;">
+          <span style="position:absolute;font-family:Georgia,serif;font-size:130px;font-weight:900;color:rgba(255,255,255,0.22);line-height:1;top:-22px;left:10px;">&ldquo;</span>
+          <span style="position:absolute;font-family:Georgia,serif;font-size:96px;font-weight:900;color:rgba(255,255,255,0.18);line-height:1;bottom:-14px;right:18px;">&rdquo;</span>
+          <span style="position:absolute;font-family:Georgia,serif;font-size:42px;font-weight:900;color:rgba(255,255,255,0.30);line-height:1;top:8px;right:88px;">&ldquo;</span>
+          <span style="position:absolute;font-family:Georgia,serif;font-size:58px;font-weight:900;color:rgba(255,255,255,0.26);line-height:1;bottom:6px;left:108px;">&rdquo;</span>
+          <span style="position:absolute;font-family:Georgia,serif;font-size:28px;font-weight:900;color:rgba(255,255,255,0.33);line-height:1;top:12px;left:44%;">&ldquo;</span>
+          <p style="position:relative;font-family:${f.display};font-weight:900;font-style:italic;font-size:36px;text-transform:uppercase;letter-spacing:-0.01em;line-height:1;color:${c.white};margin:0;">Quote of the Day</p>
         </td></tr>
         ${section(`
           <p style="font-family:${f.body};font-size:18px;font-style:italic;color:${c.textPrimary};line-height:1.6;margin:0 0 12px 0;">&ldquo;${e(quote.text)}&rdquo;</p>
@@ -262,7 +355,14 @@ export function renderNewsletterHTML(data: IssueData): string {
 
         ${noiseHtml ? `
         <!-- The Noise -->
-        ${banner('The Noise')}
+        <tr><td style="background:${c.accent};padding:18px 32px;text-align:center;position:relative;overflow:hidden;">
+          <svg width="110" height="110" viewBox="0 0 20 20" fill="white" style="position:absolute;opacity:0.18;top:-16px;left:8px;"><rect x="1" y="8" width="3" height="5" rx="0.5"/><path d="M4 7.5 L15.5 2 L15.5 18 L4 12.5 Z"/></svg>
+          <svg width="80" height="80" viewBox="0 0 20 20" fill="white" style="position:absolute;opacity:0.14;bottom:-12px;right:16px;"><rect x="1" y="8" width="3" height="5" rx="0.5"/><path d="M4 7.5 L15.5 2 L15.5 18 L4 12.5 Z"/></svg>
+          <svg width="38" height="38" viewBox="0 0 20 20" fill="white" style="position:absolute;opacity:0.28;top:6px;right:84px;"><rect x="1" y="8" width="3" height="5" rx="0.5"/><path d="M4 7.5 L15.5 2 L15.5 18 L4 12.5 Z"/></svg>
+          <svg width="52" height="52" viewBox="0 0 20 20" fill="white" style="position:absolute;opacity:0.22;bottom:4px;left:104px;"><rect x="1" y="8" width="3" height="5" rx="0.5"/><path d="M4 7.5 L15.5 2 L15.5 18 L4 12.5 Z"/></svg>
+          <svg width="26" height="26" viewBox="0 0 20 20" fill="white" style="position:absolute;opacity:0.30;top:10px;left:44%;"><rect x="1" y="8" width="3" height="5" rx="0.5"/><path d="M4 7.5 L15.5 2 L15.5 18 L4 12.5 Z"/></svg>
+          <p style="position:relative;font-family:${f.display};font-weight:900;font-style:italic;font-size:36px;text-transform:uppercase;letter-spacing:-0.01em;line-height:1;color:${c.white};margin:0;"><span style="position:relative;top:-3px;">&#9670;</span>&nbsp;The Noise</p>
+        </td></tr>
         ${section(`<p style="font-family:${f.body};font-size:18px;font-style:italic;color:#1A1A1A;margin:0;line-height:1.4;">Everything we filtered out today, so you didn&rsquo;t have to.</p>`)}
         <tr><td style="background:#060A14;padding:24px 32px;">
           <p style="margin:0;line-height:2.4;">${noiseHtml}</p>
@@ -279,6 +379,9 @@ export function renderNewsletterHTML(data: IssueData): string {
       </table>
     </td></tr>
   </table>
+
+  <!-- Tracking pixel: loaded when email client renders images -->
+  <img src="${appUrl}/api/track/open?date=${encodeURIComponent(issue_date)}&email={{email}}" width="1" height="1" alt="" style="display:block;width:1px;height:1px;border:0;opacity:0;" />
 </body>
 </html>`
 }

@@ -30,6 +30,18 @@ const SKY = '#0EA5E9'
 const MUTED = '#6B7280'
 const PRIMARY = '#1A1A1A'
 
+function MegaphoneDecor({ size, opacity, style }: { size: number; opacity: number; style: React.CSSProperties }) {
+  return (
+    <svg
+      width={size} height={size} viewBox="0 0 20 20" fill="white"
+      style={{ position: 'absolute', opacity, pointerEvents: 'none', userSelect: 'none', ...style }}
+    >
+      <rect x="1" y="8" width="3" height="5" rx="0.5" />
+      <path d="M4 7.5 L15.5 2 L15.5 18 L4 12.5 Z" />
+    </svg>
+  )
+}
+
 function stripUrls(text: string | null | undefined): string {
   if (!text) return ''
   return text.replace(/\(?\s*https?:\/\/\S+\s*\)?/g, '').replace(/\s+/g, ' ').trim()
@@ -203,7 +215,7 @@ export default function NewsletterPreview({
           One Thing That Matters
         </p>
         <p style={{ fontFamily: BODY, fontSize: '14px', color: '#FFFFFF', opacity: 0.9, margin: '0 0 10px 0' }}>
-          One signal in AI. Every day. Every Angle.
+          One signal in AI. Monday to Friday. Every Angle.
         </p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <div style={{ display: 'inline-block', transform: 'rotate(-5deg)', transformOrigin: 'left bottom' }}>
@@ -310,18 +322,38 @@ export default function NewsletterPreview({
 
       {/* Art */}
       {art && (
-        <div style={{ background: '#FFFFFF' }}>
-          <img
-            src={art.image_url}
-            alt={art.caption ?? ''}
-            style={{ display: 'block', width: '100%', maxHeight: '260px', objectFit: 'cover' }}
-          />
-          {(art.caption || art.artist_name) && (
-            <p style={{ fontFamily: BODY, fontSize: '13px', color: MUTED, fontStyle: 'italic', margin: 0, padding: '8px 32px' }}>
-              {art.caption}{art.artist_name && ` — ${art.artist_name}`}
-            </p>
-          )}
-        </div>
+        <>
+          <SectionBanner label="Today's AI Art" />
+          <div style={{ background: '#FFFFFF' }}>
+            <img
+              src={art.image_url}
+              alt={art.caption ?? ''}
+              style={{ display: 'block', width: '100%', maxHeight: '300px', objectFit: 'cover' }}
+            />
+          </div>
+          <ContentSection>
+            {art.artist_tagline && (
+              <p style={{ fontFamily: BODY, fontSize: '18px', fontStyle: 'italic', color: PRIMARY, lineHeight: 1.5, margin: '0 0 14px 0' }}>
+                {art.artist_tagline}
+              </p>
+            )}
+            {art.caption && (
+              <p style={{ fontFamily: BODY, fontSize: '15px', color: PRIMARY, lineHeight: 1.7, margin: '0 0 16px 0' }}>
+                {art.caption}
+              </p>
+            )}
+            {art.artist_name && (
+              <p style={{ fontFamily: BODY, fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: MUTED, margin: '0 0 6px 0' }}>
+                {art.artist_name}
+              </p>
+            )}
+            {art.bio && (
+              <p style={{ fontFamily: BODY, fontSize: '13px', color: MUTED, fontStyle: 'italic', lineHeight: 1.6, margin: 0 }}>
+                {art.bio}
+              </p>
+            )}
+          </ContentSection>
+        </>
       )}
 
       {/* Empty state */}
@@ -397,15 +429,17 @@ export default function NewsletterPreview({
       {/* Quote of the Day */}
       {quote && (
         <>
-          {/* Quote banner — decorative curly quotes flank the heading */}
-          <div style={{ background: ACCENT, padding: '18px 32px', textAlign: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px' }}>
-              <span style={{ fontFamily: 'Georgia, serif', fontSize: '72px', fontWeight: 900, color: 'rgba(255,255,255,0.3)', lineHeight: 1, marginTop: '-8px' }}>&ldquo;</span>
-              <p style={{ fontFamily: DISPLAY, fontWeight: 900, fontStyle: 'italic', fontSize: '36px', textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 1, color: '#FFFFFF', margin: 0 }}>
-                Quote of the Day
-              </p>
-              <span style={{ fontFamily: 'Georgia, serif', fontSize: '72px', fontWeight: 900, color: 'rgba(255,255,255,0.3)', lineHeight: 1, marginTop: '-8px' }}>&rdquo;</span>
-            </div>
+          <div style={{ background: ACCENT, padding: '22px 32px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+            {/* Scattered decorative quote marks — background layer */}
+            <span style={{ position: 'absolute', fontFamily: 'Georgia, serif', fontSize: '130px', fontWeight: 900, color: 'rgba(255,255,255,0.22)', lineHeight: 1, top: '-22px', left: '10px', userSelect: 'none', pointerEvents: 'none' }}>&ldquo;</span>
+            <span style={{ position: 'absolute', fontFamily: 'Georgia, serif', fontSize: '96px', fontWeight: 900, color: 'rgba(255,255,255,0.18)', lineHeight: 1, bottom: '-14px', right: '18px', userSelect: 'none', pointerEvents: 'none' }}>&rdquo;</span>
+            <span style={{ position: 'absolute', fontFamily: 'Georgia, serif', fontSize: '42px', fontWeight: 900, color: 'rgba(255,255,255,0.30)', lineHeight: 1, top: '8px', right: '88px', userSelect: 'none', pointerEvents: 'none' }}>&ldquo;</span>
+            <span style={{ position: 'absolute', fontFamily: 'Georgia, serif', fontSize: '58px', fontWeight: 900, color: 'rgba(255,255,255,0.26)', lineHeight: 1, bottom: '6px', left: '108px', userSelect: 'none', pointerEvents: 'none' }}>&rdquo;</span>
+            <span style={{ position: 'absolute', fontFamily: 'Georgia, serif', fontSize: '28px', fontWeight: 900, color: 'rgba(255,255,255,0.33)', lineHeight: 1, top: '12px', left: '44%', userSelect: 'none', pointerEvents: 'none' }}>&ldquo;</span>
+            {/* Heading — above the decorative layer */}
+            <p style={{ position: 'relative', fontFamily: DISPLAY, fontWeight: 900, fontStyle: 'italic', fontSize: '36px', textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 1, color: '#FFFFFF', margin: 0 }}>
+              Quote of the Day
+            </p>
           </div>
           <ContentSection>
             <p style={{ fontFamily: BODY, fontSize: '18px', fontStyle: 'italic', color: PRIMARY, lineHeight: 1.6, margin: '0 0 12px 0' }}>
@@ -421,7 +455,16 @@ export default function NewsletterPreview({
       {/* The Noise */}
       {noiseTitles && noiseTitles.length > 0 && (
         <>
-          <SectionBanner label="The Noise" />
+          <div style={{ background: ACCENT, padding: '18px 32px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+            <MegaphoneDecor size={110} opacity={0.18} style={{ top: -16, left: 8 }} />
+            <MegaphoneDecor size={80} opacity={0.14} style={{ bottom: -12, right: 16 }} />
+            <MegaphoneDecor size={38} opacity={0.28} style={{ top: 6, right: 84 }} />
+            <MegaphoneDecor size={52} opacity={0.22} style={{ bottom: 4, left: 104 }} />
+            <MegaphoneDecor size={26} opacity={0.30} style={{ top: 10, left: '44%' }} />
+            <p style={{ position: 'relative', fontFamily: DISPLAY, fontWeight: 900, fontStyle: 'italic', fontSize: '36px', textTransform: 'uppercase', letterSpacing: '-0.01em', lineHeight: 1, color: '#FFFFFF', margin: 0 }}>
+              <span style={{ position: 'relative', top: '-3px' }}>◆</span>&nbsp;The Noise
+            </p>
+          </div>
           <ContentSection>
             <p style={{ fontFamily: BODY, fontSize: '18px', fontStyle: 'italic', color: PRIMARY, margin: 0, lineHeight: 1.4 }}>
               Everything we filtered out today, so you didn&rsquo;t have to.

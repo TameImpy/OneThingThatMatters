@@ -2,6 +2,11 @@
 
 import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
+
+async function signOut(router: ReturnType<typeof useRouter>) {
+  await fetch('/api/auth/logout', { method: 'POST' })
+  router.push('/login')
+}
 import NewsletterPreview from '@/components/NewsletterPreview'
 import type {
   WatchCandidate,
@@ -43,6 +48,8 @@ export default function NewsletterPage({ params }: PageProps) {
   const [pov, setPov] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [selectedQuote, setSelectedQuote] = useState<DailyQuote | null>(null)
+  const [questions, setQuestions] = useState<{ category: string; question: string }[]>([])
+  const [questionsStatus, setQuestionsStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -54,6 +61,10 @@ export default function NewsletterPage({ params }: PageProps) {
     }
     const storedArt = sessionStorage.getItem(`art-${date}`)
     if (storedArt) setArtPicked(true)
+    const storedQuestions = sessionStorage.getItem(`questions-${date}`)
+    if (storedQuestions) {
+      try { setQuestions(JSON.parse(storedQuestions) as { category: string; question: string }[]) } catch { /* ignore */ }
+    }
   }, [date])
 
   useEffect(() => {
@@ -128,6 +139,25 @@ export default function NewsletterPage({ params }: PageProps) {
     }
   }
 
+  async function generateQuestions() {
+    setQuestionsStatus('loading')
+    try {
+      const res = await fetch('/api/newsletter/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(picks),
+      })
+      const data = await res.json() as { success: boolean; questions?: { category: string; question: string }[]; error?: string }
+      if (!res.ok || !data.success) throw new Error(data.error ?? 'Failed to generate questions')
+      const qs = data.questions ?? []
+      setQuestions(qs)
+      sessionStorage.setItem(`questions-${date}`, JSON.stringify(qs))
+      setQuestionsStatus('idle')
+    } catch {
+      setQuestionsStatus('error')
+    }
+  }
+
   const allPicked = picks.watch && picks.news && picks.research && picks.story
 
   return (
@@ -155,6 +185,13 @@ export default function NewsletterPage({ params }: PageProps) {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => signOut(router)}
+              className="rounded px-3 py-1.5 text-xs text-white/40 hover:text-white/70 border border-white/10 hover:border-white/25 transition-colors"
+              style={{ fontFamily: BODY }}
+            >
+              Sign out
+            </button>
             <button
               onClick={() => router.back()}
               className="rounded px-3 py-1.5 text-xs text-white/60 hover:text-white border border-white/20 hover:border-white/40 transition-colors"
@@ -218,6 +255,58 @@ export default function NewsletterPage({ params }: PageProps) {
                 style={{ fontFamily: BODY }}
               />
             </div>
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs uppercase tracking-widest" style={{ color: '#22D3EE', fontFamily: BODY, letterSpacing: '0.12em' }}>
+                  Key Questions
+                </span>
+                {questions.length > 0 && (
+                  <button
+                    onClick={generateQuestions}
+                    disabled={questionsStatus === 'loading'}
+                    className="rounded px-2.5 py-1 text-xs text-white/50 hover:text-white border border-white/15 hover:border-white/35 transition-colors disabled:opacity-40"
+                    style={{ fontFamily: BODY }}
+                  >
+                    {questionsStatus === 'loading' ? 'Generating…' : 'Regenerate'}
+                  </button>
+                )}
+              </div>
+
+              {questions.length === 0 && questionsStatus !== 'loading' && (
+                <button
+                  onClick={generateQuestions}
+                  disabled={!allPicked}
+                  className={`rounded px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
+                    allPicked
+                      ? 'bg-accent text-white hover:bg-accent/90'
+                      : 'bg-white/10 text-white/30 cursor-not-allowed'
+                  }`}
+                  style={{ fontFamily: BODY }}
+                >
+                  Generate Key Questions
+                </button>
+              )}
+
+              {questionsStatus === 'loading' && questions.length === 0 && (
+                <p className="text-muted text-sm animate-pulse" style={{ fontFamily: BODY }}>Generating…</p>
+              )}
+
+              {questionsStatus === 'error' && (
+                <p className="text-red-400 text-sm" style={{ fontFamily: BODY }}>Failed to generate questions. Try again.</p>
+              )}
+
+              {questions.length > 0 && (
+                <ul className="space-y-2">
+                  {questions.map((q, i) => (
+                    <li key={i} className="rounded px-4 py-3" style={{ background: '#111827', border: '1px solid #1E2A3A' }}>
+                      <span className="text-xs font-bold uppercase mr-2" style={{ color: '#FBBF24', fontFamily: BODY }}>{q.category}</span>
+                      <span className="text-sm leading-relaxed" style={{ color: '#CFFAFE', fontFamily: BODY }}>{q.question}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
             <NewsletterPreview
               issueDate={date}
               issueNumber={issueNumber}

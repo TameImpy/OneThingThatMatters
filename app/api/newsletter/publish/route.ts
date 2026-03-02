@@ -56,14 +56,21 @@ export async function POST(req: NextRequest) {
     })
 
     // Send via Resend batch API
+    const fromAddress = process.env.RESEND_FROM ?? 'One Thing That Matters <newsletter@onethingmatters.com>'
     const emails = subscribers.map(({ email }) => ({
-      from: 'One Thing That Matters <newsletter@onethingmatters.com>',
+      from: fromAddress,
       to: [email],
       subject: `One Thing That Matters · ${issue_date}`,
       html: html.replace(/\{\{email\}\}/g, encodeURIComponent(email)),
     }))
 
-    await resend.batch.send(emails)
+    console.log(`[publish] Sending to ${emails.length} subscriber(s):`, subscribers.map(s => s.email))
+
+    const { data: batchData, error: sendError } = await resend.batch.send(emails)
+
+    console.log('[publish] Resend batch response:', JSON.stringify({ data: batchData, error: sendError }, null, 2))
+
+    if (sendError) throw new Error(`Resend error: ${sendError.message}`)
 
     // Save newsletter issue
     const { error: issueError } = await supabase.from('newsletter_issues').insert({
