@@ -61,6 +61,7 @@ function TodayDashboard() {
 
   const [quotes, setQuotes] = useState<DailyQuote[]>([])
   const [quotesLoading, setQuotesLoading] = useState(false)
+  const [quotesError, setQuotesError] = useState<string | null>(null)
   const [selectedQuote, setSelectedQuote] = useState<DailyQuote | null>(null)
   const [customQuote, setCustomQuote] = useState('')
   const [customAuthor, setCustomAuthor] = useState('')
@@ -147,7 +148,9 @@ function TodayDashboard() {
       .then(r => r.json())
       .then(data => {
         if (data.success) setQuotes(data.quotes)
+        else setQuotesError(data.error ?? 'Failed to generate quotes')
       })
+      .catch(e => setQuotesError(e instanceof Error ? e.message : 'Failed to generate quotes'))
       .finally(() => setQuotesLoading(false))
   }, [allPicked])
 
@@ -388,6 +391,12 @@ function TodayDashboard() {
                 {quotesLoading && (
                   <p className="text-xs text-muted italic animate-pulse py-4 text-center" style={{ fontFamily: BODY }}>
                     Generating quotes…
+                  </p>
+                )}
+
+                {!quotesLoading && quotesError && (
+                  <p className="text-xs text-red-600 py-2" style={{ fontFamily: BODY }}>
+                    Quote generation failed: {quotesError}
                   </p>
                 )}
 
