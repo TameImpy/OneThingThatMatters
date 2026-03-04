@@ -14,11 +14,45 @@ export const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
+function previousDay(date: string): string {
+  const d = new Date(date + 'T12:00:00Z')
+  d.setUTCDate(d.getUTCDate() - 1)
+  return d.toISOString().split('T')[0]
+}
+
+async function fetchForDate<T>(
+  table: CategoryTable,
+  date: string,
+  dateColumn: string,
+  orderField: string | null,
+  isTimestamp: boolean,
+): Promise<T[]> {
+  let query = supabase.from(table).select('*')
+
+  if (isTimestamp) {
+    query = query
+      .gte(dateColumn, `${date}T00:00:00.000Z`)
+      .lt(dateColumn, `${date}T23:59:59.999Z`)
+  } else {
+    query = query.eq(dateColumn, date)
+  }
+
+  if (orderField) {
+    query = query.order(orderField, { ascending: false, nullsFirst: false })
+  }
+
+  const { data, error } = await query
+  if (error) throw new Error(error.message)
+  return (data ?? []) as T[]
+}
+
 /**
  * Fetch rows for a specific date (defaults to today).
- * @param dateColumn  - column to filter on (cast to ::date for timestamp columns)
+ * Falls back to the previous day if today returns no results (n8n failure safety net).
+ * @param dateColumn  - column to filter on
  * @param orderField  - column to sort descending; null skips ordering (default: fit_score)
  * @param targetDate  - ISO date string YYYY-MM-DD (default: today)
+ * @param isTimestamp - true for timestamptz columns (uses day-range filter)
  */
 export async function getTodayItems<T>(
   table: CategoryTable,
@@ -31,25 +65,11 @@ export async function getTodayItems<T>(
 ): Promise<T[]> {
   const date = targetDate ?? new Date().toISOString().split('T')[0]
 
-  let query = supabase.from(table).select('*')
+  const results = await fetchForDate<T>(table, date, dateColumn, orderField, isTimestamp)
+  if (results.length > 0) return results
 
-  if (isTimestamp) {
-    // Timestamp columns: filter by day range to avoid cast issues
-    query = query
-      .gte(dateColumn, `${date}T00:00:00.000Z`)
-      .lt(dateColumn, `${date}T23:59:59.999Z`)
-  } else {
-    // Pure date columns: simple equality
-    query = query.eq(dateColumn, date)
-  }
-
-  if (orderField) {
-    query = query.order(orderField, { ascending: false, nullsFirst: false })
-  }
-
-  const { data, error } = await query
-  if (error) throw new Error(error.message)
-  return (data ?? []) as T[]
+  // Nothing for today — fall back to yesterday (guards against n8n failures)
+  return fetchForDate<T>(table, previousDay(date), dateColumn, orderField, isTimestamp)
 }
 
 /**
