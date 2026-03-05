@@ -340,13 +340,8 @@ export function renderNewsletterHTML(data: IssueData): string {
 
         ${quote ? `
         <!-- Quote of the Day -->
-        <tr><td style="background:${c.accent};padding:22px 32px;text-align:center;position:relative;overflow:hidden;">
-          <span style="position:absolute;font-family:Georgia,serif;font-size:130px;font-weight:900;color:rgba(255,255,255,0.22);line-height:1;top:-22px;left:10px;">&ldquo;</span>
-          <span style="position:absolute;font-family:Georgia,serif;font-size:96px;font-weight:900;color:rgba(255,255,255,0.18);line-height:1;bottom:-14px;right:18px;">&rdquo;</span>
-          <span style="position:absolute;font-family:Georgia,serif;font-size:42px;font-weight:900;color:rgba(255,255,255,0.30);line-height:1;top:8px;right:88px;">&ldquo;</span>
-          <span style="position:absolute;font-family:Georgia,serif;font-size:58px;font-weight:900;color:rgba(255,255,255,0.26);line-height:1;bottom:6px;left:108px;">&rdquo;</span>
-          <span style="position:absolute;font-family:Georgia,serif;font-size:28px;font-weight:900;color:rgba(255,255,255,0.33);line-height:1;top:12px;left:44%;">&ldquo;</span>
-          <p style="position:relative;font-family:${f.display};font-weight:900;font-style:italic;font-size:36px;text-transform:uppercase;letter-spacing:-0.01em;line-height:1;color:${c.white};margin:0;">Quote of the Day</p>
+        <tr><td style="background:${c.accent};padding:18px 32px;text-align:center;">
+          <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:36px;text-transform:uppercase;letter-spacing:-0.01em;line-height:1;color:${c.white};margin:0;"><span style="position:relative;top:-3px;">&#9670;</span>&nbsp;Quote of the Day</p>
         </td></tr>
         ${section(`
           <p style="font-family:${f.body};font-size:18px;font-style:italic;color:${c.textPrimary};line-height:1.6;margin:0 0 12px 0;">&ldquo;${e(quote.text)}&rdquo;</p>
