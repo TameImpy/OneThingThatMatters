@@ -3,7 +3,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'One Thing That Matters',
-  description: 'Agent-assisted daily newsletter system',
+  description: 'One signal in AI. Monday to Friday. Every Angle.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
