@@ -315,7 +315,9 @@ export default function NewsletterPreview({
             </div>
           </div>
           <ContentSection>
-            <Body>{pov}</Body>
+            {pov.split(/\n+/).filter(p => p.trim()).map((p, i) => (
+              <Body key={i}>{p.trim()}</Body>
+            ))}
           </ContentSection>
         </>
       )}

@@ -199,6 +199,13 @@ export function renderNewsletterHTML(data: IssueData): string {
       ? `<p style="font-family:${f.body};font-size:16px;color:${c.textPrimary};margin:0 0 16px 0;line-height:1.7;">${e(text)}</p>`
       : ''
 
+  const bodyParagraphs = (text: string | null) =>
+    text
+      ? text.split(/\n+/).filter(p => p.trim()).map(p =>
+          `<p style="font-family:${f.body};font-size:16px;color:${c.textPrimary};margin:0 0 16px 0;line-height:1.7;">${e(p.trim())}</p>`
+        ).join('')
+      : ''
+
   const muted = (text: string | null) =>
     text
       ? `<p style="font-family:${f.body};font-size:13px;color:${c.textMuted};font-style:italic;margin:0 0 12px 0;line-height:1.5;">${e(text)}</p>`
@@ -286,7 +293,7 @@ export function renderNewsletterHTML(data: IssueData): string {
             </tr>
           </table>
         </td></tr>
-        ${section(body(pov))}` : ''}
+        ${section(bodyParagraphs(pov))}` : ''}
 
         ${art ? `
         <!-- Art block -->
