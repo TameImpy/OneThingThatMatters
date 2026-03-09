@@ -112,14 +112,14 @@ export default function CandidateCard({
           disabled={!isPicked && dimmed}
           className={`rounded px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
             isPicked
-              ? 'bg-accent text-white hover:bg-accent/60'
+              ? 'bg-accent/15 text-accent border border-accent hover:bg-red-100 hover:text-red-600 hover:border-red-400'
               : dimmed
               ? 'cursor-not-allowed'
               : 'bg-accent/10 text-accent hover:bg-accent hover:text-white'
           }`}
           style={{ fontFamily: BODY }}
         >
-          {isPicked ? '✓ Picked' : 'Pick'}
+          {isPicked ? '✓ Picked — click to unpick' : 'Pick'}
         </button>
       </div>
     </div>
