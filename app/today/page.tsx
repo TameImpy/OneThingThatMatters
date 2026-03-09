@@ -81,11 +81,26 @@ function TodayDashboard() {
         const [wData, nData, rData, sData, aData, iData] = await Promise.all([
           wRes.json(), nRes.json(), rRes.json(), sRes.json(), aRes.json(), iRes.json(),
         ])
-        if (wData.success) setWatches(wData.data)
-        if (nData.success) setNews(nData.data)
-        else setError(`News: ${nData.error}`)
-        if (rData.success) setResearch(rData.data)
-        if (sData.success) setStories(sData.data)
+        if (wData.success) {
+          setWatches(wData.data)
+          const pickedWatch = wData.data.find((w: WatchCandidate) => w.picked)
+          if (pickedWatch) setPicks(prev => ({ ...prev, watch: pickedWatch }))
+        }
+        if (nData.success) {
+          setNews(nData.data)
+          const pickedNews = nData.data.find((n: AiNewsTop5) => n.picked)
+          if (pickedNews) setPicks(prev => ({ ...prev, news: pickedNews }))
+        } else setError(`News: ${nData.error}`)
+        if (rData.success) {
+          setResearch(rData.data)
+          const pickedResearch = rData.data.find((r: AiPaperCandidate) => r.picked)
+          if (pickedResearch) setPicks(prev => ({ ...prev, research: pickedResearch }))
+        }
+        if (sData.success) {
+          setStories(sData.data)
+          const pickedStory = sData.data.find((s: StoryOfPastCandidate) => s.selected)
+          if (pickedStory) setPicks(prev => ({ ...prev, story: pickedStory }))
+        }
         if (aData.success) setArt(aData.data)
         setIssueNumber(iData.issueNumber ?? 1)
       } catch (e) {
