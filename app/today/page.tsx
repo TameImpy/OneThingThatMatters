@@ -383,7 +383,7 @@ function TodayDashboard() {
                   </p>
                 </div>
                 <div className={`rounded border bg-surface overflow-hidden transition-all duration-200 ${artPicked ? 'border-accent shadow-sm' : 'border-border hover:border-accent/50'}`}>
-                  <img src={art.image_url} alt={art.caption ?? ''} className="w-full max-h-48 object-cover" />
+                  <img src={art.image_url} alt={art.caption ?? ''} className="w-full object-contain" />
                   {(art.caption || art.artist_name) && (
                     <div className="px-4 py-2 text-xs text-muted italic" style={{ fontFamily: BODY }}>
                       {art.caption}{art.artist_name && ` — ${art.artist_name}`}
