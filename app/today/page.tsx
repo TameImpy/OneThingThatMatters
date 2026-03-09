@@ -122,20 +122,20 @@ function TodayDashboard() {
     table: CategoryTable,
     id: string,
     category: keyof Picks,
-    item: WatchCandidate | AiNewsTop5 | AiPaperCandidate | StoryOfPastCandidate
   ) => {
-    setPicks(prev => ({ ...prev, [category]: null }))
     try {
       const res = await fetch('/api/pick', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ table, id }),
       })
-      if (!res.ok) {
-        setPicks(prev => ({ ...prev, [category]: item }))
+      if (res.ok) {
+        setPicks(prev => ({ ...prev, [category]: null }))
+      } else {
+        console.error('Unpick failed:', res.status, await res.text())
       }
-    } catch {
-      setPicks(prev => ({ ...prev, [category]: item }))
+    } catch (e) {
+      console.error('Unpick error:', e)
     }
   }, [])
 
@@ -274,7 +274,7 @@ function TodayDashboard() {
                   isPicked={picks.news?.id === n.id}
                   isAnyPicked={picks.news !== null}
                   onPick={() => handlePick('ai_news_top5', n.id, 'news', n)}
-                  onUnpick={() => handleUnpick('ai_news_top5', n.id, 'news', n)}
+                  onUnpick={() => handleUnpick('ai_news_top5', n.id, 'news')}
                   url={n.url}
                   meta={n.source}
                 />
@@ -297,7 +297,7 @@ function TodayDashboard() {
                   isPicked={picks.research?.id === r.id}
                   isAnyPicked={picks.research !== null}
                   onPick={() => handlePick('ai_paper_candidates', r.id, 'research', r)}
-                  onUnpick={() => handleUnpick('ai_paper_candidates', r.id, 'research', r)}
+                  onUnpick={() => handleUnpick('ai_paper_candidates', r.id, 'research')}
                   url={r.pdf_url}
                   meta={r.authors}
                 />
@@ -320,7 +320,7 @@ function TodayDashboard() {
                   isPicked={picks.watch?.id === w.id}
                   isAnyPicked={picks.watch !== null}
                   onPick={() => handlePick('watch_candidates', w.id, 'watch', w)}
-                  onUnpick={() => handleUnpick('watch_candidates', w.id, 'watch', w)}
+                  onUnpick={() => handleUnpick('watch_candidates', w.id, 'watch')}
                   thumbnailUrl={w.thumbnail_url}
                   url={w.url}
                   meta={w.channel_name}
@@ -344,7 +344,7 @@ function TodayDashboard() {
                   isPicked={picks.story?.id === s.id}
                   isAnyPicked={picks.story !== null}
                   onPick={() => handlePick('stories_of_past_candidates', s.id, 'story', s)}
-                  onUnpick={() => handleUnpick('stories_of_past_candidates', s.id, 'story', s)}
+                  onUnpick={() => handleUnpick('stories_of_past_candidates', s.id, 'story')}
                 />
               ))}
             </CategorySection>
