@@ -13,6 +13,7 @@ interface CandidateCardProps {
   isPicked: boolean
   isAnyPicked: boolean
   onPick: (id: string) => void
+  onUnpick?: () => void
   thumbnailUrl?: string | null
   url?: string | null
   meta?: string | null
@@ -27,6 +28,7 @@ export default function CandidateCard({
   isPicked,
   isAnyPicked,
   onPick,
+  onUnpick,
   thumbnailUrl,
   url,
   meta,
@@ -106,11 +108,11 @@ export default function CandidateCard({
 
       <div className="mt-3 flex justify-end">
         <button
-          onClick={() => onPick(id)}
-          disabled={isPicked || dimmed}
+          onClick={() => isPicked ? onUnpick?.() : onPick(id)}
+          disabled={!isPicked && dimmed}
           className={`rounded px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
             isPicked
-              ? 'bg-accent text-white cursor-default'
+              ? 'bg-accent text-white hover:bg-accent/60'
               : dimmed
               ? 'cursor-not-allowed'
               : 'bg-accent/10 text-accent hover:bg-accent hover:text-white'

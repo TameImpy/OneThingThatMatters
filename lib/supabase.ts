@@ -87,6 +87,16 @@ export async function pickItem(table: CategoryTable, id: string): Promise<void> 
   if (error) throw new Error(error.message)
 }
 
+/** Undo a pick — reverses pickItem(). */
+export async function unpickItem(table: CategoryTable, id: string): Promise<void> {
+  const isStories = table === 'stories_of_past_candidates'
+  const update = isStories
+    ? { selected: false }
+    : { picked: false, picked_at: null }
+  const { error } = await supabase.from(table).update(update).eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
 /** Fetch all active subscribers. */
 export async function getActiveSubscribers(): Promise<Array<{ email: string }>> {
   const { data, error } = await supabase
