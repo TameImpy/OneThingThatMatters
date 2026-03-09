@@ -92,7 +92,7 @@ export async function unpickItem(table: CategoryTable, id: string): Promise<void
   const isStories = table === 'stories_of_past_candidates'
   const update = isStories
     ? { selected: false }
-    : { picked: false, picked_at: null }
+    : { picked: false }
   const { error } = await supabase.from(table).update(update).eq('id', id)
   if (error) throw new Error(error.message)
 }
