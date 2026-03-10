@@ -158,7 +158,6 @@ function TodayDashboard() {
     picks.watch !== null &&
     picks.news !== null &&
     picks.research !== null &&
-    picks.story !== null &&
     artPicked
 
   const activeQuote: DailyQuote | null = selectedQuote ?? (
@@ -247,7 +246,7 @@ function TodayDashboard() {
               }`}
               style={{ fontFamily: BODY }}
             >
-              {!allPicked ? 'Pick all 4 to publish' : !activeQuote ? 'Select a quote to publish' : 'Go to Publish →'}
+              {!allPicked ? 'Pick watch, read, research & art to publish' : !activeQuote ? 'Select a quote to publish' : 'Go to Publish →'}
             </button>
           </div>
         </div>

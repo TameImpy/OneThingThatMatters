@@ -158,7 +158,7 @@ export default function NewsletterPage({ params }: PageProps) {
     }
   }
 
-  const allPicked = picks.watch && picks.news && picks.research && picks.story
+  const allPicked = picks.watch && picks.news && picks.research
 
   return (
     <div className="min-h-screen bg-page text-primary">
@@ -224,7 +224,7 @@ export default function NewsletterPage({ params }: PageProps) {
 
         {!allPicked && !loading && (
           <div className="mb-6 rounded border border-amber-300 bg-amber-50 p-4 text-amber-800 text-sm" style={{ fontFamily: BODY }}>
-            Not all categories have been picked yet. Go back and complete your selections.
+            Not all categories have been picked yet. Go back and complete your selections (Watch, Read, and Research are required).
           </div>
         )}
 
