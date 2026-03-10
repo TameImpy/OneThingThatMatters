@@ -37,14 +37,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'No active subscribers' }, { status: 400 })
     }
 
-    // Render HTML
-    const { count: issueCount } = await supabase
-      .from('newsletter_issues')
-      .select('*', { count: 'exact', head: true })
+    // Calculate issue number from weekdays since launch date (matches preview)
+    function countWeekdays(start: Date, end: Date): number {
+      let count = 0
+      const current = new Date(start)
+      while (current <= end) {
+        const day = current.getDay()
+        if (day !== 0 && day !== 6) count++
+        current.setUTCDate(current.getUTCDate() + 1)
+      }
+      return count
+    }
+    const launchDate = process.env.NEWSLETTER_START_DATE ?? '2026-02-27'
+    const issueNumber = Math.max(1, countWeekdays(
+      new Date(launchDate + 'T12:00:00Z'),
+      new Date(issue_date + 'T12:00:00Z')
+    ))
 
+    // Render HTML
     const html = renderNewsletterHTML({
       issue_date,
-      issueNumber: (issueCount ?? 0) + 1,
+      issueNumber,
       pov: pov ?? null,
       watch: picks.watch,
       news: picks.news,
