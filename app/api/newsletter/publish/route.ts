@@ -16,9 +16,9 @@ export async function POST(req: NextRequest) {
   if (!issue_date) {
     return NextResponse.json({ success: false, error: 'Missing issue_date' }, { status: 400 })
   }
-  if (!picks?.watch || !picks?.news || !picks?.research || !picks?.story) {
+  if (!picks?.watch || !picks?.news || !picks?.research) {
     return NextResponse.json(
-      { success: false, error: 'All 4 picks (watch, news, research, story) are required' },
+      { success: false, error: 'Watch, news, and research picks are required' },
       { status: 400 }
     )
   }
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
       watch_id: picks.watch.id,
       news_id: picks.news.id,
       paper_id: picks.research.id,
-      story_id: picks.story.id,
+      story_id: picks.story?.id ?? null,
       art_id: art_id ?? null,
       sent_at: new Date().toISOString(),
       subscriber_count: subscribers.length,
