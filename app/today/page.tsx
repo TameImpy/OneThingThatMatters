@@ -32,6 +32,29 @@ interface Picks {
   story: StoryOfPastCandidate | null
 }
 
+interface PickOverride {
+  description?: string
+  whyItMatters?: string
+}
+type Overrides = Record<string, PickOverride>
+
+function applyOverrides(picks: Picks, overrides: Overrides): Picks {
+  return {
+    watch: picks.watch && overrides[picks.watch.id]
+      ? { ...picks.watch, summary: overrides[picks.watch.id].description ?? picks.watch.summary, why_it_matters: overrides[picks.watch.id].whyItMatters ?? picks.watch.why_it_matters }
+      : picks.watch,
+    news: picks.news && overrides[picks.news.id]
+      ? { ...picks.news, summary: overrides[picks.news.id].description ?? picks.news.summary, why_it_matters: overrides[picks.news.id].whyItMatters ?? picks.news.why_it_matters }
+      : picks.news,
+    research: picks.research && overrides[picks.research.id]
+      ? { ...picks.research, summary_llm: overrides[picks.research.id].description ?? picks.research.summary_llm, why_it_matters: overrides[picks.research.id].whyItMatters ?? picks.research.why_it_matters }
+      : picks.research,
+    story: picks.story && overrides[picks.story.id]
+      ? { ...picks.story, event_summary: overrides[picks.story.id].description ?? picks.story.event_summary, why_it_mattered: overrides[picks.story.id].whyItMatters ?? picks.story.why_it_mattered }
+      : picks.story,
+  }
+}
+
 function getTodayDate(): string {
   return new Date().toISOString().split('T')[0]
 }
@@ -58,6 +81,15 @@ function TodayDashboard() {
   })
 
   const [artPicked, setArtPicked] = useState(false)
+  const [overrides, setOverrides] = useState<Overrides>({})
+
+  const handleEdit = useCallback((id: string, field: 'description' | 'whyItMatters', value: string) => {
+    setOverrides(prev => {
+      const next = { ...prev, [id]: { ...prev[id], [field]: value } }
+      sessionStorage.setItem(`overrides-${today}`, JSON.stringify(next))
+      return next
+    })
+  }, [today])
 
   const [quotes, setQuotes] = useState<DailyQuote[]>([])
   const [quotesLoading, setQuotesLoading] = useState(false)
@@ -291,6 +323,9 @@ function TodayDashboard() {
                   onUnpick={() => handleUnpick('ai_news_top5', n.id, 'news')}
                   url={n.url}
                   meta={n.source}
+                  editedDescription={overrides[n.id]?.description}
+                  editedWhyItMatters={overrides[n.id]?.whyItMatters}
+                  onEdit={(field, value) => handleEdit(n.id, field, value)}
                 />
               ))}
             </CategorySection>
@@ -314,6 +349,9 @@ function TodayDashboard() {
                   onUnpick={() => handleUnpick('ai_paper_candidates', r.id, 'research')}
                   url={r.pdf_url}
                   meta={r.authors}
+                  editedDescription={overrides[r.id]?.description}
+                  editedWhyItMatters={overrides[r.id]?.whyItMatters}
+                  onEdit={(field, value) => handleEdit(r.id, field, value)}
                 />
               ))}
             </CategorySection>
@@ -338,6 +376,9 @@ function TodayDashboard() {
                   thumbnailUrl={w.thumbnail_url}
                   url={w.url}
                   meta={w.channel_name}
+                  editedDescription={overrides[w.id]?.description}
+                  editedWhyItMatters={overrides[w.id]?.whyItMatters}
+                  onEdit={(field, value) => handleEdit(w.id, field, value)}
                 />
               ))}
             </CategorySection>
@@ -359,6 +400,9 @@ function TodayDashboard() {
                   isAnyPicked={picks.story !== null}
                   onPick={() => handlePick('stories_of_past_candidates', s.id, 'story', s)}
                   onUnpick={() => handleUnpick('stories_of_past_candidates', s.id, 'story')}
+                  editedDescription={overrides[s.id]?.description}
+                  editedWhyItMatters={overrides[s.id]?.whyItMatters}
+                  onEdit={(field, value) => handleEdit(s.id, field, value)}
                 />
               ))}
             </CategorySection>
@@ -498,10 +542,10 @@ function TodayDashboard() {
               <NewsletterPreview
                 issueDate={today}
                 issueNumber={issueNumber}
-                watch={picks.watch}
-                news={picks.news}
-                research={picks.research}
-                story={picks.story}
+                watch={applyOverrides(picks, overrides).watch}
+                news={applyOverrides(picks, overrides).news}
+                research={applyOverrides(picks, overrides).research}
+                story={applyOverrides(picks, overrides).story}
                 art={artPicked ? art : null}
                 quote={activeQuote}
               />

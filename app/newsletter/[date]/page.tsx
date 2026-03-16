@@ -31,6 +31,29 @@ interface StoredPicks {
   story: StoryOfPastCandidate | null
 }
 
+interface PickOverride {
+  description?: string
+  whyItMatters?: string
+}
+type Overrides = Record<string, PickOverride>
+
+function applyOverrides(picks: StoredPicks, overrides: Overrides): StoredPicks {
+  return {
+    watch: picks.watch && overrides[picks.watch.id]
+      ? { ...picks.watch, summary: overrides[picks.watch.id].description ?? picks.watch.summary, why_it_matters: overrides[picks.watch.id].whyItMatters ?? picks.watch.why_it_matters }
+      : picks.watch,
+    news: picks.news && overrides[picks.news.id]
+      ? { ...picks.news, summary: overrides[picks.news.id].description ?? picks.news.summary, why_it_matters: overrides[picks.news.id].whyItMatters ?? picks.news.why_it_matters }
+      : picks.news,
+    research: picks.research && overrides[picks.research.id]
+      ? { ...picks.research, summary_llm: overrides[picks.research.id].description ?? picks.research.summary_llm, why_it_matters: overrides[picks.research.id].whyItMatters ?? picks.research.why_it_matters }
+      : picks.research,
+    story: picks.story && overrides[picks.story.id]
+      ? { ...picks.story, event_summary: overrides[picks.story.id].description ?? picks.story.event_summary, why_it_mattered: overrides[picks.story.id].whyItMatters ?? picks.story.why_it_mattered }
+      : picks.story,
+  }
+}
+
 export default function NewsletterPage({ params }: PageProps) {
   const router = useRouter()
   const { date } = use(params)
@@ -48,6 +71,7 @@ export default function NewsletterPage({ params }: PageProps) {
   const [pov, setPov] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [selectedQuote, setSelectedQuote] = useState<DailyQuote | null>(null)
+  const [overrides, setOverrides] = useState<Overrides>({})
   const [questions, setQuestions] = useState<{ category: string; question: string }[]>([])
   const [questionsStatus, setQuestionsStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [publishing, setPublishing] = useState(false)
@@ -61,6 +85,10 @@ export default function NewsletterPage({ params }: PageProps) {
     }
     const storedArt = sessionStorage.getItem(`art-${date}`)
     if (storedArt) setArtPicked(true)
+    const storedOverrides = sessionStorage.getItem(`overrides-${date}`)
+    if (storedOverrides) {
+      try { setOverrides(JSON.parse(storedOverrides) as Overrides) } catch { /* ignore */ }
+    }
     const storedQuestions = sessionStorage.getItem(`questions-${date}`)
     if (storedQuestions) {
       try { setQuestions(JSON.parse(storedQuestions) as { category: string; question: string }[]) } catch { /* ignore */ }
@@ -122,7 +150,7 @@ export default function NewsletterPage({ params }: PageProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           issue_date: date,
-          picks,
+          picks: applyOverrides(picks, overrides),
           art_id: art?.id ?? null,
           pov: pov.trim() || null,
           quote: selectedQuote,
@@ -311,10 +339,10 @@ export default function NewsletterPage({ params }: PageProps) {
               issueDate={date}
               issueNumber={issueNumber}
               pov={pov.trim() || null}
-              watch={picks.watch}
-              news={picks.news}
-              research={picks.research}
-              story={picks.story}
+              watch={applyOverrides(picks, overrides).watch}
+              news={applyOverrides(picks, overrides).news}
+              research={applyOverrides(picks, overrides).research}
+              story={applyOverrides(picks, overrides).story}
               art={artPicked ? art : null}
               quote={selectedQuote}
               noiseTitles={noiseTitles}
