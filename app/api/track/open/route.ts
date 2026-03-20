@@ -9,11 +9,20 @@ const PIXEL = Buffer.from(
 
 export async function GET(req: NextRequest) {
   const date = req.nextUrl.searchParams.get('date')
+  const email = req.nextUrl.searchParams.get('email')
 
-  if (date) {
-    // Atomic increment — fire-and-forget, don't block the pixel response
-    supabase.rpc('increment_open_count', { p_date: date })
-      .then(({ error }) => { if (error) console.error('open track error:', error) })
+  if (date && email) {
+    // Insert into dedup table — unique constraint on (issue_date, email)
+    // means subsequent opens from the same subscriber are silently ignored.
+    const { error: insertError } = await supabase
+      .from('newsletter_open_events')
+      .insert({ issue_date: date, email })
+
+    if (!insertError) {
+      // First open from this subscriber for this issue — increment the count
+      supabase.rpc('increment_open_count', { p_date: date })
+        .then(({ error }) => { if (error) console.error('open track error:', error) })
+    }
   }
 
   return new NextResponse(PIXEL, {
