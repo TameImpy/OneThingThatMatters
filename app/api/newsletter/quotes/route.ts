@@ -28,6 +28,10 @@ ${watch ? `- Video: "${watch.title}" — ${watch.summary} — ${watch.why_it_mat
 ${story ? `- Historical event: ${story.this_time_line} — ${story.event_summary}` : ''}
 
 Return a JSON array of exactly 5 real, verifiable historical quotes relevant to these themes.
+Draw from a wide range of sources — technologists, scientists, and business figures are welcome, but also
+consider philosophers, writers, poets, and great thinkers (Aristotle, Nietzsche, Seneca, Montaigne,
+Dostoevsky, etc.) where a deeper or more philosophical angle illuminates the themes in an unexpected way.
+Prioritise quotes that feel surprising, resonant, and timeless over obvious or on-the-nose choices.
 Each item must follow this exact format:
 { "text": "...", "author": "Name, Role", "attribution": "Context/year", "relevance": "1-2 sentences why" }
 
