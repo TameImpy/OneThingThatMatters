@@ -72,6 +72,7 @@ export default function NewsletterPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true)
   const [selectedQuote, setSelectedQuote] = useState<DailyQuote | null>(null)
   const [overrides, setOverrides] = useState<Overrides>({})
+  const [artCropBottom, setArtCropBottom] = useState(0)
   const [questions, setQuestions] = useState<{ category: string; question: string }[]>([])
   const [questionsStatus, setQuestionsStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [publishing, setPublishing] = useState(false)
@@ -89,6 +90,8 @@ export default function NewsletterPage({ params }: PageProps) {
     if (storedOverrides) {
       try { setOverrides(JSON.parse(storedOverrides) as Overrides) } catch { /* ignore */ }
     }
+    const storedCrop = sessionStorage.getItem(`art-crop-${date}`)
+    if (storedCrop) setArtCropBottom(Number(storedCrop))
     const storedQuestions = sessionStorage.getItem(`questions-${date}`)
     if (storedQuestions) {
       try { setQuestions(JSON.parse(storedQuestions) as { category: string; question: string }[]) } catch { /* ignore */ }
@@ -152,6 +155,7 @@ export default function NewsletterPage({ params }: PageProps) {
           issue_date: date,
           picks: applyOverrides(picks, overrides),
           art_id: art?.id ?? null,
+          artCropBottom: artCropBottom || undefined,
           pov: pov.trim() || null,
           quote: selectedQuote,
           noiseTitles,
@@ -344,6 +348,7 @@ export default function NewsletterPage({ params }: PageProps) {
               research={applyOverrides(picks, overrides).research}
               story={applyOverrides(picks, overrides).story}
               art={artPicked ? art : null}
+              artCropBottom={artCropBottom}
               quote={selectedQuote}
               noiseTitles={noiseTitles}
             />

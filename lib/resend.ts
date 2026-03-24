@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { artCropHeight } from './crop'
 import type {
   WatchCandidate,
   AiNewsTop5,
@@ -22,6 +23,7 @@ interface IssueData {
   research: AiPaperCandidate | null
   story: StoryOfPastCandidate | null
   art: NewsletterDailyArt | null
+  artCropBottom?: number
   quote?: DailyQuote | null
   noiseTitles?: string[]
 }
@@ -144,7 +146,7 @@ export function renderWelcomeEmailHTML(name: string | null): string {
 }
 
 export function renderNewsletterHTML(data: IssueData): string {
-  const { issue_date, issueNumber, pov, watch, news, research, story, art, quote, noiseTitles } = data
+  const { issue_date, issueNumber, pov, watch, news, research, story, art, artCropBottom, quote, noiseTitles } = data
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://onethingmatters.com'
 
   // Escape user/AI content before embedding in HTML.
@@ -298,8 +300,8 @@ export function renderNewsletterHTML(data: IssueData): string {
         ${art ? `
         <!-- Art block -->
         ${banner("Today's AI Art")}
-        <tr><td style="background:${c.white};padding:0;">
-          <img src="${art.image_url}" alt="${art.caption ?? ''}" width="600" style="display:block;width:100%;max-height:300px;object-fit:cover;">
+        <tr><td style="background:${c.white};padding:0;overflow:hidden;max-height:${artCropHeight(artCropBottom)}px;">
+          <img src="${art.image_url}" alt="${art.caption ?? ''}" width="600" style="display:block;width:100%;max-height:${artCropHeight(artCropBottom)}px;object-fit:cover;${artCropBottom ? 'object-position:top;' : ''}">
         </td></tr>
         ${section(`
           ${art.artist_tagline ? `<p style="font-family:${f.body};font-size:18px;font-style:italic;color:${c.textPrimary};line-height:1.5;margin:0 0 14px 0;">${e(art.artist_tagline)}</p>` : ''}

@@ -81,6 +81,7 @@ function TodayDashboard() {
   })
 
   const [artPicked, setArtPicked] = useState(false)
+  const [artCropBottom, setArtCropBottom] = useState(0)
   const [overrides, setOverrides] = useState<Overrides>({})
 
   const handleEdit = useCallback((id: string, field: 'description' | 'whyItMatters', value: string) => {
@@ -432,26 +433,47 @@ function TodayDashboard() {
                       {art.caption}{art.artist_name && ` — ${art.artist_name}`}
                     </div>
                   )}
-                  <div className="px-4 py-3 flex justify-end border-t border-border">
-                    <button
-                      onClick={() => {
-                        if (artPicked) {
-                          setArtPicked(false)
-                          sessionStorage.removeItem(`art-${today}`)
-                        } else {
-                          setArtPicked(true)
-                          sessionStorage.setItem(`art-${today}`, art.id)
-                        }
-                      }}
-                      className={`rounded px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
-                        artPicked
-                          ? 'bg-accent text-white hover:bg-accent/60'
-                          : 'bg-accent/10 text-accent hover:bg-accent hover:text-white'
-                      }`}
-                      style={{ fontFamily: BODY }}
-                    >
-                      {artPicked ? '✓ Picked' : 'Pick'}
-                    </button>
+                  <div className="px-4 py-3 border-t border-border">
+                    <div className="mb-3">
+                      <label className="flex items-center justify-between text-xs text-muted mb-1" style={{ fontFamily: BODY }}>
+                        <span className="font-bold uppercase tracking-widest">Crop from bottom</span>
+                        <span>{artCropBottom > 0 ? `${artCropBottom}%` : 'None'}</span>
+                      </label>
+                      <input
+                        type="range"
+                        min={0}
+                        max={70}
+                        step={5}
+                        value={artCropBottom}
+                        onChange={e => {
+                          const val = Number(e.target.value)
+                          setArtCropBottom(val)
+                          sessionStorage.setItem(`art-crop-${today}`, String(val))
+                        }}
+                        className="w-full accent-accent"
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => {
+                          if (artPicked) {
+                            setArtPicked(false)
+                            sessionStorage.removeItem(`art-${today}`)
+                          } else {
+                            setArtPicked(true)
+                            sessionStorage.setItem(`art-${today}`, art.id)
+                          }
+                        }}
+                        className={`rounded px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
+                          artPicked
+                            ? 'bg-accent text-white hover:bg-accent/60'
+                            : 'bg-accent/10 text-accent hover:bg-accent hover:text-white'
+                        }`}
+                        style={{ fontFamily: BODY }}
+                      >
+                        {artPicked ? '✓ Picked' : 'Pick'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </section>
@@ -547,6 +569,7 @@ function TodayDashboard() {
                 research={applyOverrides(picks, overrides).research}
                 story={applyOverrides(picks, overrides).story}
                 art={artPicked ? art : null}
+                artCropBottom={artCropBottom}
                 quote={activeQuote}
               />
               </div>

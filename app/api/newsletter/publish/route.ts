@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { issue_date, picks, art_id, pov, quote, noiseTitles } = body as Partial<PublishRequest> & { art_id?: string | null; pov?: string | null; quote?: DailyQuote | null; noiseTitles?: string[] }
+  const { issue_date, picks, art_id, artCropBottom, pov, quote, noiseTitles } = body as Partial<PublishRequest> & { art_id?: string | null; artCropBottom?: number; pov?: string | null; quote?: DailyQuote | null; noiseTitles?: string[] }
 
   if (!issue_date) {
     return NextResponse.json({ success: false, error: 'Missing issue_date' }, { status: 400 })
@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
       research: picks.research,
       story: picks.story,
       art,
+      artCropBottom: artCropBottom ?? undefined,
       quote: quote ?? null,
       noiseTitles: noiseTitles ?? [],
     })

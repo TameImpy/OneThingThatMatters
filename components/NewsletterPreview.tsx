@@ -1,5 +1,6 @@
 'use client'
 
+import { artCropHeight } from '@/lib/crop'
 import type {
   WatchCandidate,
   AiNewsTop5,
@@ -18,6 +19,7 @@ interface NewsletterPreviewProps {
   research: AiPaperCandidate | null
   story: StoryOfPastCandidate | null
   art: NewsletterDailyArt | null
+  artCropBottom?: number
   quote?: DailyQuote | null
   noiseTitles?: string[]
 }
@@ -191,6 +193,7 @@ export default function NewsletterPreview({
   research,
   story,
   art,
+  artCropBottom,
   quote,
   noiseTitles,
 }: NewsletterPreviewProps) {
@@ -326,11 +329,17 @@ export default function NewsletterPreview({
       {art && (
         <>
           <SectionBanner label="Today's AI Art" />
-          <div style={{ background: '#FFFFFF' }}>
+          <div style={{ background: '#FFFFFF', overflow: 'hidden', maxHeight: `${artCropHeight(artCropBottom)}px` }}>
             <img
               src={art.image_url}
               alt={art.caption ?? ''}
-              style={{ display: 'block', width: '100%', maxHeight: '300px', objectFit: 'cover' }}
+              style={{
+                display: 'block',
+                width: '100%',
+                maxHeight: `${artCropHeight(artCropBottom)}px`,
+                objectFit: 'cover',
+                objectPosition: artCropBottom ? 'top' : 'center',
+              }}
             />
           </div>
           <ContentSection>
