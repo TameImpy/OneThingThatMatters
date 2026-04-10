@@ -2,22 +2,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ImageResponse } from '@vercel/og'
 import { supabase } from '@/lib/supabase'
+import { readFile } from 'fs/promises'
+import { join } from 'path'
 
 export const maxDuration = 60
-
-const PLAYFAIR_URL =
-  'https://fonts.gstatic.com/s/playfairdisplay/v37/nuFlD-vYSZviVYUb_rj3ij__anPXBYf9pWkU5xxiJKY.woff'
-const INTER_URL =
-  'https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfAZ9hjQ.woff'
 
 let fontsPromise: Promise<{ playfair: ArrayBuffer; inter: ArrayBuffer }> | null = null
 
 function loadFonts() {
   if (!fontsPromise) {
+    const fontsDir = join(process.cwd(), 'public', 'fonts')
     fontsPromise = Promise.all([
-      fetch(PLAYFAIR_URL).then(r => r.arrayBuffer()),
-      fetch(INTER_URL).then(r => r.arrayBuffer()),
-    ]).then(([playfair, inter]) => ({ playfair, inter }))
+      readFile(join(fontsDir, 'PlayfairDisplay-Bold.ttf')),
+      readFile(join(fontsDir, 'Inter-Regular.ttf')),
+    ]).then(([playfair, inter]) => ({
+      playfair: playfair.buffer as ArrayBuffer,
+      inter: inter.buffer as ArrayBuffer,
+    }))
   }
   return fontsPromise
 }
