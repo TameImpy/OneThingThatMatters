@@ -222,6 +222,20 @@ export default function InstagramPostPanel({ date, picks }: InstagramPostPanelPr
     }
   }
 
+  async function downloadImage() {
+    if (!compositeUrl) return
+    const res = await fetch(compositeUrl)
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `instagram-${date}.png`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   async function copyCaption() {
     await navigator.clipboard.writeText(caption)
     setCopied(true)
@@ -426,14 +440,13 @@ export default function InstagramPostPanel({ date, picks }: InstagramPostPanelPr
                     />
                   </div>
                   <div>
-                    <a
-                      href={compositeUrl}
-                      download={`instagram-${date}.png`}
-                      className="inline-block rounded px-4 py-2 text-xs font-bold uppercase tracking-wider bg-ink text-white hover:bg-ink/90 transition-colors"
+                    <button
+                      onClick={downloadImage}
+                      className="rounded px-4 py-2 text-xs font-bold uppercase tracking-wider bg-ink text-white hover:bg-ink/90 transition-colors"
                       style={{ fontFamily: BODY }}
                     >
                       Download PNG
-                    </a>
+                    </button>
                   </div>
                 </div>
               )}
