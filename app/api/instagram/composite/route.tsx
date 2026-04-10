@@ -16,8 +16,8 @@ function loadFonts() {
       readFile(join(fontsDir, 'PlayfairDisplay-Bold.ttf')),
       readFile(join(fontsDir, 'Inter-Regular.ttf')),
     ]).then(([playfair, inter]) => ({
-      playfair: playfair.buffer as ArrayBuffer,
-      inter: inter.buffer as ArrayBuffer,
+      playfair: new Uint8Array(playfair).buffer as ArrayBuffer,
+      inter: new Uint8Array(inter).buffer as ArrayBuffer,
     }))
   }
   return fontsPromise
