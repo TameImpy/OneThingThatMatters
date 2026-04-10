@@ -45,5 +45,6 @@ export const config = {
     '/api/today/:path*',
     '/api/newsletter/:path*',
     '/api/analytics',
+    '/api/instagram/:path*',
   ],
 }

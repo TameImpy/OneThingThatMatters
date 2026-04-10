@@ -122,6 +122,10 @@ export interface DailyQuote {
   relevance: string     // why it connects to today's content
 }
 
+// ─── Instagram Post ──────────────────────────────────────────────────────────
+
+export type InstagramLeadCategory = 'watch' | 'news' | 'research' | 'story'
+
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
 export type CategoryTable =

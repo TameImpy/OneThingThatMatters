@@ -8,6 +8,7 @@ async function signOut(router: ReturnType<typeof useRouter>) {
   router.push('/login')
 }
 import NewsletterPreview from '@/components/NewsletterPreview'
+import InstagramPostPanel from '@/components/InstagramPostPanel'
 import type {
   WatchCandidate,
   AiNewsTop5,
@@ -352,6 +353,8 @@ export default function NewsletterPage({ params }: PageProps) {
               quote={selectedQuote}
               noiseTitles={noiseTitles}
             />
+
+            <InstagramPostPanel date={date} picks={picks} />
           </>
         )}
       </div>
