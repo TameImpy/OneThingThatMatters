@@ -2,23 +2,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ImageResponse } from '@vercel/og'
 import { supabase } from '@/lib/supabase'
-import { readFile } from 'fs/promises'
-import { join } from 'path'
 
 export const maxDuration = 60
+
+// Static single-weight TTF URLs from Google Fonts (not variable fonts — Satori requires static)
+const PLAYFAIR_BOLD_URL =
+  'https://fonts.gstatic.com/s/playfairdisplay/v40/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKeiukDQ.ttf'
+const INTER_REGULAR_URL =
+  'https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZg.ttf'
 
 let fontsPromise: Promise<{ playfair: ArrayBuffer; inter: ArrayBuffer }> | null = null
 
 function loadFonts() {
   if (!fontsPromise) {
-    const fontsDir = join(process.cwd(), 'public', 'fonts')
     fontsPromise = Promise.all([
-      readFile(join(fontsDir, 'PlayfairDisplay-Bold.ttf')),
-      readFile(join(fontsDir, 'Inter-Regular.ttf')),
-    ]).then(([playfair, inter]) => ({
-      playfair: new Uint8Array(playfair).buffer as ArrayBuffer,
-      inter: new Uint8Array(inter).buffer as ArrayBuffer,
-    }))
+      fetch(PLAYFAIR_BOLD_URL).then(r => r.arrayBuffer()),
+      fetch(INTER_REGULAR_URL).then(r => r.arrayBuffer()),
+    ]).then(([playfair, inter]) => ({ playfair, inter }))
   }
   return fontsPromise
 }
@@ -55,7 +55,6 @@ export async function POST(req: NextRequest) {
     const dataUri = `data:${contentType};base64,${base64}`
 
     const displayHeadline = headline.length > 120 ? headline.slice(0, 117) + '...' : headline
-    const displayTeaser = teaser ? (teaser.length > 160 ? teaser.slice(0, 157) + '...' : teaser) : ''
 
     const imageResponse = new ImageResponse(
       (
@@ -95,12 +94,12 @@ export async function POST(req: NextRequest) {
               <div
                 style={{
                   fontFamily: 'Inter',
-                  fontSize: '18px',
+                  fontSize: '28px',
                   fontWeight: 600,
                   color: '#E8522E',
                   textTransform: 'uppercase',
                   letterSpacing: '0.15em',
-                  marginBottom: '20px',
+                  marginBottom: '24px',
                 }}
               >
                 {categoryTag}
@@ -110,29 +109,14 @@ export async function POST(req: NextRequest) {
               <div
                 style={{
                   fontFamily: 'Playfair Display',
-                  fontSize: displayHeadline.length > 80 ? '28px' : '34px',
+                  fontSize: displayHeadline.length > 80 ? '42px' : '52px',
                   fontWeight: 700,
                   color: '#FFFFFF',
-                  lineHeight: 1.25,
-                  marginBottom: '16px',
+                  lineHeight: 1.2,
                 }}
               >
                 {displayHeadline}
               </div>
-
-              {/* Teaser */}
-              {displayTeaser && (
-                <div
-                  style={{
-                    fontFamily: 'Inter',
-                    fontSize: '18px',
-                    color: 'rgba(255,255,255,0.65)',
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {displayTeaser}
-                </div>
-              )}
             </div>
 
             {/* Branding footer */}
