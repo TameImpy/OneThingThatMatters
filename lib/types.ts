@@ -126,6 +126,13 @@ export interface DailyQuote {
 
 export type InstagramLeadCategory = 'watch' | 'news' | 'research' | 'story'
 
+export interface InstagramSlideTexts {
+  slide1Hook: string
+  slide2Fact: string
+  slide3Insight: string
+  slide4Takeaway: string
+}
+
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
 export type CategoryTable =

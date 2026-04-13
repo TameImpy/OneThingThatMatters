@@ -7,6 +7,7 @@ import type {
   AiPaperCandidate,
   StoryOfPastCandidate,
   InstagramLeadCategory,
+  InstagramSlideTexts,
 } from '@/lib/types'
 
 const BODY = "Georgia, 'Times New Roman', serif"
@@ -58,7 +59,9 @@ interface SessionState {
   leadCategory: InstagramLeadCategory | null
   visualPrompt: string
   dalleImageUrl: string | null
-  compositeUrl: string | null
+  slides: InstagramSlideTexts | null
+  slideUrls: string[] | null
+  zipUrl: string | null
   caption: string
 }
 
@@ -69,8 +72,11 @@ export default function InstagramPostPanel({ date, picks }: InstagramPostPanelPr
   const [promptStatus, setPromptStatus] = useState<StepStatus>('idle')
   const [dalleImageUrl, setDalleImageUrl] = useState<string | null>(null)
   const [imageStatus, setImageStatus] = useState<StepStatus>('idle')
-  const [compositeUrl, setCompositeUrl] = useState<string | null>(null)
-  const [compositeStatus, setCompositeStatus] = useState<StepStatus>('idle')
+  const [slides, setSlides] = useState<InstagramSlideTexts | null>(null)
+  const [slidesStatus, setSlidesStatus] = useState<StepStatus>('idle')
+  const [slideUrls, setSlideUrls] = useState<string[] | null>(null)
+  const [zipUrl, setZipUrl] = useState<string | null>(null)
+  const [carouselStatus, setCarouselStatus] = useState<StepStatus>('idle')
   const [caption, setCaption] = useState('')
   const [captionStatus, setCaptionStatus] = useState<StepStatus>('idle')
   const [copied, setCopied] = useState(false)
@@ -78,24 +84,19 @@ export default function InstagramPostPanel({ date, picks }: InstagramPostPanelPr
 
   const sessionKey = `instagram-${date}`
 
-  // Restore from sessionStorage on mount
   useEffect(() => {
     const stored = sessionStorage.getItem(sessionKey)
     if (stored) {
       try {
         const s = JSON.parse(stored) as SessionState
         if (s.leadCategory) setLeadCategory(s.leadCategory)
-        if (s.visualPrompt) setVisualPrompt(s.visualPrompt)
-        if (s.dalleImageUrl) setDalleImageUrl(s.dalleImageUrl)
-        if (s.compositeUrl) setCompositeUrl(s.compositeUrl)
-        if (s.caption) setCaption(s.caption)
-        if (s.compositeUrl || s.dalleImageUrl || s.visualPrompt) {
-          setCollapsed(false)
-          setPromptStatus(s.visualPrompt ? 'done' : 'idle')
-          setImageStatus(s.dalleImageUrl ? 'done' : 'idle')
-          setCompositeStatus(s.compositeUrl ? 'done' : 'idle')
-          setCaptionStatus(s.caption ? 'done' : 'idle')
-        }
+        if (s.visualPrompt) { setVisualPrompt(s.visualPrompt); setPromptStatus('done') }
+        if (s.dalleImageUrl) { setDalleImageUrl(s.dalleImageUrl); setImageStatus('done') }
+        if (s.slides) { setSlides(s.slides); setSlidesStatus('done') }
+        if (s.slideUrls) { setSlideUrls(s.slideUrls); setCarouselStatus('done') }
+        if (s.zipUrl) setZipUrl(s.zipUrl)
+        if (s.caption) { setCaption(s.caption); setCaptionStatus('done') }
+        if (s.visualPrompt || s.dalleImageUrl || s.slides || s.slideUrls) setCollapsed(false)
       } catch { /* ignore */ }
     }
   }, [sessionKey])
@@ -103,133 +104,128 @@ export default function InstagramPostPanel({ date, picks }: InstagramPostPanelPr
   const persist = useCallback(
     (patch: Partial<SessionState>) => {
       const current: SessionState = {
-        leadCategory,
-        visualPrompt,
-        dalleImageUrl,
-        compositeUrl,
-        caption,
+        leadCategory, visualPrompt, dalleImageUrl, slides, slideUrls, zipUrl, caption,
         ...patch,
       }
       sessionStorage.setItem(sessionKey, JSON.stringify(current))
     },
-    [sessionKey, leadCategory, visualPrompt, dalleImageUrl, compositeUrl, caption],
+    [sessionKey, leadCategory, visualPrompt, dalleImageUrl, slides, slideUrls, zipUrl, caption],
   )
+
+  function resetFrom(step: 'prompt' | 'image' | 'slides' | 'carousel') {
+    if (step === 'prompt') {
+      setVisualPrompt(''); setPromptStatus('idle')
+      setDalleImageUrl(null); setImageStatus('idle')
+    }
+    if (step === 'prompt' || step === 'image') {
+      // Image change only resets carousel, not slides
+    }
+    if (step === 'prompt' || step === 'slides') {
+      setSlides(null); setSlidesStatus('idle')
+    }
+    if (step === 'prompt' || step === 'image' || step === 'slides' || step === 'carousel') {
+      setSlideUrls(null); setZipUrl(null); setCarouselStatus('idle')
+    }
+    setCaption(''); setCaptionStatus('idle')
+  }
 
   async function handleGeneratePrompt() {
     if (!leadCategory) return
     const details = getPickDetails(leadCategory, picks)
     if (!details) return
-
-    setPromptStatus('loading')
-    setErrorMsg(null)
+    setPromptStatus('loading'); setErrorMsg(null)
     try {
       const res = await fetch('/api/instagram/generate-prompt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(details),
       })
       const data = await res.json() as { success: boolean; visualPrompt?: string; error?: string }
-      if (!res.ok || !data.success) throw new Error(data.error ?? 'Failed to generate prompt')
-      setVisualPrompt(data.visualPrompt ?? '')
-      setPromptStatus('done')
-      // Reset downstream
-      setDalleImageUrl(null)
-      setImageStatus('idle')
-      setCompositeUrl(null)
-      setCompositeStatus('idle')
-      persist({ visualPrompt: data.visualPrompt ?? '', dalleImageUrl: null, compositeUrl: null })
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Error')
-      setPromptStatus('error')
-    }
+      if (!res.ok || !data.success) throw new Error(data.error ?? 'Failed')
+      setVisualPrompt(data.visualPrompt ?? ''); setPromptStatus('done')
+      setDalleImageUrl(null); setImageStatus('idle')
+      setSlideUrls(null); setZipUrl(null); setCarouselStatus('idle')
+      persist({ visualPrompt: data.visualPrompt ?? '', dalleImageUrl: null, slideUrls: null, zipUrl: null })
+    } catch (err) { setErrorMsg(err instanceof Error ? err.message : 'Error'); setPromptStatus('error') }
   }
 
   async function handleGenerateImage() {
     if (!visualPrompt) return
-    setImageStatus('loading')
-    setErrorMsg(null)
+    setImageStatus('loading'); setErrorMsg(null)
     try {
       const res = await fetch('/api/instagram/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ visualPrompt }),
       })
       const data = await res.json() as { success: boolean; imageUrl?: string; error?: string }
-      if (!res.ok || !data.success) throw new Error(data.error ?? 'Failed to generate image')
-      setDalleImageUrl(data.imageUrl ?? null)
-      setImageStatus('done')
-      // Reset downstream
-      setCompositeUrl(null)
-      setCompositeStatus('idle')
-      persist({ dalleImageUrl: data.imageUrl ?? null, compositeUrl: null })
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Error')
-      setImageStatus('error')
-    }
+      if (!res.ok || !data.success) throw new Error(data.error ?? 'Failed')
+      setDalleImageUrl(data.imageUrl ?? null); setImageStatus('done')
+      setSlideUrls(null); setZipUrl(null); setCarouselStatus('idle')
+      persist({ dalleImageUrl: data.imageUrl ?? null, slideUrls: null, zipUrl: null })
+    } catch (err) { setErrorMsg(err instanceof Error ? err.message : 'Error'); setImageStatus('error') }
   }
 
-  async function handleComposite() {
-    if (!dalleImageUrl || !leadCategory) return
+  async function handleGenerateSlides() {
+    if (!leadCategory) return
     const details = getPickDetails(leadCategory, picks)
     if (!details) return
+    setSlidesStatus('loading'); setErrorMsg(null)
+    try {
+      const res = await fetch('/api/instagram/generate-slides', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(details),
+      })
+      const data = await res.json() as { success: boolean; slides?: InstagramSlideTexts; error?: string }
+      if (!res.ok || !data.success) throw new Error(data.error ?? 'Failed')
+      setSlides(data.slides ?? null); setSlidesStatus('done')
+      setSlideUrls(null); setZipUrl(null); setCarouselStatus('idle')
+      persist({ slides: data.slides ?? null, slideUrls: null, zipUrl: null })
+    } catch (err) { setErrorMsg(err instanceof Error ? err.message : 'Error'); setSlidesStatus('error') }
+  }
 
-    setCompositeStatus('loading')
-    setErrorMsg(null)
+  async function handleCreateCarousel() {
+    if (!dalleImageUrl || !slides || !leadCategory) return
+    setCarouselStatus('loading'); setErrorMsg(null)
     try {
       const res = await fetch('/api/instagram/composite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          dalleImageUrl,
-          headline: details.title,
-          teaser: details.summary.split(/[.!?]/)[0] + '.',
+          dalleImageUrl, slides,
           categoryTag: CATEGORY_LABELS[leadCategory],
           date,
         }),
       })
-      const data = await res.json() as { success: boolean; compositeImageUrl?: string; error?: string }
-      if (!res.ok || !data.success) throw new Error(data.error ?? 'Failed to create composite')
-      setCompositeUrl(data.compositeImageUrl ?? null)
-      setCompositeStatus('done')
-      persist({ compositeUrl: data.compositeImageUrl ?? null })
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Error')
-      setCompositeStatus('error')
-    }
+      const data = await res.json() as { success: boolean; slideUrls?: string[]; zipUrl?: string; error?: string }
+      if (!res.ok || !data.success) throw new Error(data.error ?? 'Failed')
+      setSlideUrls(data.slideUrls ?? null); setZipUrl(data.zipUrl ?? null); setCarouselStatus('done')
+      persist({ slideUrls: data.slideUrls ?? null, zipUrl: data.zipUrl ?? null })
+    } catch (err) { setErrorMsg(err instanceof Error ? err.message : 'Error'); setCarouselStatus('error') }
   }
 
   async function handleGenerateCaption() {
     if (!leadCategory) return
     const details = getPickDetails(leadCategory, picks)
     if (!details) return
-
-    setCaptionStatus('loading')
-    setErrorMsg(null)
+    setCaptionStatus('loading'); setErrorMsg(null)
     try {
       const res = await fetch('/api/instagram/generate-caption', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ leadCategory, ...details }),
       })
       const data = await res.json() as { success: boolean; caption?: string; error?: string }
-      if (!res.ok || !data.success) throw new Error(data.error ?? 'Failed to generate caption')
-      setCaption(data.caption ?? '')
-      setCaptionStatus('done')
+      if (!res.ok || !data.success) throw new Error(data.error ?? 'Failed')
+      setCaption(data.caption ?? ''); setCaptionStatus('done')
       persist({ caption: data.caption ?? '' })
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Error')
-      setCaptionStatus('error')
-    }
+    } catch (err) { setErrorMsg(err instanceof Error ? err.message : 'Error'); setCaptionStatus('error') }
   }
 
-  async function downloadImage() {
-    if (!compositeUrl) return
-    const res = await fetch(compositeUrl)
+  async function downloadZip() {
+    if (!zipUrl) return
+    const res = await fetch(zipUrl)
     const blob = await res.blob()
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `instagram-${date}.png`
+    a.download = `instagram-${date}-carousel.zip`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -242,20 +238,27 @@ export default function InstagramPostPanel({ date, picks }: InstagramPostPanelPr
     setTimeout(() => setCopied(false), 2000)
   }
 
+  function updateSlideField(field: keyof InstagramSlideTexts, value: string) {
+    if (!slides) return
+    const updated = { ...slides, [field]: value }
+    setSlides(updated)
+    setSlideUrls(null); setZipUrl(null); setCarouselStatus('idle')
+    persist({ slides: updated, slideUrls: null, zipUrl: null })
+  }
+
   const categories: InstagramLeadCategory[] = ['watch', 'news', 'research', 'story']
+  const SLIDE_LABELS: Record<keyof InstagramSlideTexts, string> = {
+    slide1Hook: 'Slide 1 — Hook',
+    slide2Fact: 'Slide 2 — Key Fact',
+    slide3Insight: 'Slide 3 — Insight',
+    slide4Takeaway: 'Slide 4 — Takeaway',
+  }
 
   return (
     <div className="mt-8">
-      {/* Section header — collapsible */}
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center gap-2 mb-4 group"
-      >
-        <span
-          className="text-xs uppercase tracking-widest"
-          style={{ color: '#E8522E', fontFamily: BODY, letterSpacing: '0.12em' }}
-        >
-          Instagram Post
+      <button onClick={() => setCollapsed(!collapsed)} className="flex items-center gap-2 mb-4 group">
+        <span className="text-xs uppercase tracking-widest" style={{ color: '#E8522E', fontFamily: BODY, letterSpacing: '0.12em' }}>
+          Instagram Carousel
         </span>
         <span className="text-muted text-xs group-hover:text-primary transition-colors">
           {collapsed ? '+ expand' : '- collapse'}
@@ -264,22 +267,15 @@ export default function InstagramPostPanel({ date, picks }: InstagramPostPanelPr
 
       {!collapsed && (
         <div className="space-y-6">
-          {/* Error display */}
           {errorMsg && (
-            <div
-              className="rounded border border-red-300 bg-red-50 p-3 text-red-700 text-sm"
-              style={{ fontFamily: BODY }}
-            >
+            <div className="rounded border border-red-300 bg-red-50 p-3 text-red-700 text-sm" style={{ fontFamily: BODY }}>
               {errorMsg}
             </div>
           )}
 
           {/* Step 0: Lead picker */}
           <div>
-            <label
-              className="block text-xs font-bold uppercase tracking-widest text-ink mb-2"
-              style={{ fontFamily: BODY, letterSpacing: '0.12em' }}
-            >
+            <label className="block text-xs font-bold uppercase tracking-widest text-ink mb-2" style={{ fontFamily: BODY, letterSpacing: '0.12em' }}>
               Select Lead Story
             </label>
             <div className="flex gap-2 flex-wrap">
@@ -291,16 +287,8 @@ export default function InstagramPostPanel({ date, picks }: InstagramPostPanelPr
                     disabled={!available}
                     onClick={() => {
                       setLeadCategory(cat)
-                      persist({ leadCategory: cat })
-                      // Reset everything when lead changes
-                      setVisualPrompt('')
-                      setPromptStatus('idle')
-                      setDalleImageUrl(null)
-                      setImageStatus('idle')
-                      setCompositeUrl(null)
-                      setCompositeStatus('idle')
-                      setCaption('')
-                      setCaptionStatus('idle')
+                      resetFrom('prompt')
+                      persist({ leadCategory: cat, visualPrompt: '', dalleImageUrl: null, slides: null, slideUrls: null, zipUrl: null, caption: '' })
                     }}
                     className={`rounded px-4 py-2 text-xs font-bold uppercase tracking-wider transition-colors ${
                       leadCategory === cat
@@ -322,36 +310,24 @@ export default function InstagramPostPanel({ date, picks }: InstagramPostPanelPr
           {leadCategory && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label
-                  className="block text-xs font-bold uppercase tracking-widest text-ink"
-                  style={{ fontFamily: BODY, letterSpacing: '0.12em' }}
-                >
+                <label className="block text-xs font-bold uppercase tracking-widest text-ink" style={{ fontFamily: BODY, letterSpacing: '0.12em' }}>
                   Visual Prompt
                 </label>
                 <button
                   onClick={handleGeneratePrompt}
                   disabled={promptStatus === 'loading'}
                   className={`rounded px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
-                    promptStatus === 'loading'
-                      ? 'bg-white/10 text-muted cursor-wait'
-                      : 'bg-accent text-white hover:bg-accent/90'
+                    promptStatus === 'loading' ? 'bg-white/10 text-muted cursor-wait' : 'bg-accent text-white hover:bg-accent/90'
                   }`}
                   style={{ fontFamily: BODY }}
                 >
-                  {promptStatus === 'loading'
-                    ? 'Generating...'
-                    : visualPrompt
-                      ? 'Regenerate Prompt'
-                      : 'Generate Prompt'}
+                  {promptStatus === 'loading' ? 'Generating...' : visualPrompt ? 'Regenerate' : 'Generate Prompt'}
                 </button>
               </div>
               {visualPrompt && (
                 <textarea
                   value={visualPrompt}
-                  onChange={e => {
-                    setVisualPrompt(e.target.value)
-                    persist({ visualPrompt: e.target.value })
-                  }}
+                  onChange={e => { setVisualPrompt(e.target.value); persist({ visualPrompt: e.target.value }) }}
                   rows={3}
                   className="w-full rounded border border-border bg-surface px-4 py-3 text-sm text-primary placeholder-muted/50 focus:outline-none focus:border-accent/60 resize-none"
                   style={{ fontFamily: BODY }}
@@ -364,130 +340,129 @@ export default function InstagramPostPanel({ date, picks }: InstagramPostPanelPr
           {promptStatus === 'done' && visualPrompt && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label
-                  className="block text-xs font-bold uppercase tracking-widest text-ink"
-                  style={{ fontFamily: BODY, letterSpacing: '0.12em' }}
-                >
-                  AI Image
+                <label className="block text-xs font-bold uppercase tracking-widest text-ink" style={{ fontFamily: BODY, letterSpacing: '0.12em' }}>
+                  AI Image (Slide 1)
                 </label>
                 <button
                   onClick={handleGenerateImage}
                   disabled={imageStatus === 'loading'}
                   className={`rounded px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
-                    imageStatus === 'loading'
-                      ? 'bg-white/10 text-muted cursor-wait'
-                      : 'bg-accent text-white hover:bg-accent/90'
+                    imageStatus === 'loading' ? 'bg-white/10 text-muted cursor-wait' : 'bg-accent text-white hover:bg-accent/90'
                   }`}
                   style={{ fontFamily: BODY }}
                 >
-                  {imageStatus === 'loading'
-                    ? 'Generating (~15s)...'
-                    : dalleImageUrl
-                      ? 'Regenerate Image'
-                      : 'Generate Image'}
+                  {imageStatus === 'loading' ? 'Generating (~15s)...' : dalleImageUrl ? 'Regenerate' : 'Generate Image'}
                 </button>
               </div>
               {dalleImageUrl && (
                 <div className="rounded border border-border overflow-hidden inline-block">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={dalleImageUrl}
-                    alt="DALL-E preview"
-                    className="block"
-                    style={{ width: '300px', height: '300px', objectFit: 'cover' }}
-                  />
+                  <img src={dalleImageUrl} alt="DALL-E preview" className="block" style={{ width: '240px', height: '240px', objectFit: 'cover' }} />
                 </div>
               )}
             </div>
           )}
 
-          {/* Step 3: Composite */}
-          {imageStatus === 'done' && dalleImageUrl && (
+          {/* Step 3: Slide Text */}
+          {leadCategory && promptStatus === 'done' && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label
-                  className="block text-xs font-bold uppercase tracking-widest text-ink"
-                  style={{ fontFamily: BODY, letterSpacing: '0.12em' }}
-                >
-                  Instagram Post
+                <label className="block text-xs font-bold uppercase tracking-widest text-ink" style={{ fontFamily: BODY, letterSpacing: '0.12em' }}>
+                  Slide Text
                 </label>
                 <button
-                  onClick={handleComposite}
-                  disabled={compositeStatus === 'loading'}
+                  onClick={handleGenerateSlides}
+                  disabled={slidesStatus === 'loading'}
                   className={`rounded px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
-                    compositeStatus === 'loading'
-                      ? 'bg-white/10 text-muted cursor-wait'
-                      : 'bg-accent text-white hover:bg-accent/90'
+                    slidesStatus === 'loading' ? 'bg-white/10 text-muted cursor-wait' : 'bg-accent text-white hover:bg-accent/90'
                   }`}
                   style={{ fontFamily: BODY }}
                 >
-                  {compositeStatus === 'loading'
-                    ? 'Creating...'
-                    : compositeUrl
-                      ? 'Recreate Post'
-                      : 'Create Instagram Post'}
+                  {slidesStatus === 'loading' ? 'Generating...' : slides ? 'Regenerate' : 'Generate Slides'}
                 </button>
               </div>
-              {compositeUrl && (
+              {slides && (
                 <div className="space-y-3">
-                  <div className="rounded border border-border overflow-hidden inline-block">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={compositeUrl}
-                      alt="Instagram post preview"
-                      className="block"
-                      style={{ width: '324px', height: '405px', objectFit: 'contain' }}
-                    />
-                  </div>
-                  <div>
-                    <button
-                      onClick={downloadImage}
-                      className="rounded px-4 py-2 text-xs font-bold uppercase tracking-wider bg-ink text-white hover:bg-ink/90 transition-colors"
-                      style={{ fontFamily: BODY }}
-                    >
-                      Download PNG
-                    </button>
-                  </div>
+                  {(Object.keys(SLIDE_LABELS) as (keyof InstagramSlideTexts)[]).map(field => (
+                    <div key={field}>
+                      <label className="block text-xs text-muted mb-1" style={{ fontFamily: BODY }}>{SLIDE_LABELS[field]}</label>
+                      <textarea
+                        value={slides[field]}
+                        onChange={e => updateSlideField(field, e.target.value)}
+                        rows={2}
+                        className="w-full rounded border border-border bg-surface px-4 py-2 text-sm text-primary focus:outline-none focus:border-accent/60 resize-none"
+                        style={{ fontFamily: BODY }}
+                      />
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
           )}
 
-          {/* Step 4: Caption */}
+          {/* Step 4: Create Carousel */}
+          {imageStatus === 'done' && slidesStatus === 'done' && dalleImageUrl && slides && (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold uppercase tracking-widest text-ink" style={{ fontFamily: BODY, letterSpacing: '0.12em' }}>
+                  Carousel Preview
+                </label>
+                <button
+                  onClick={handleCreateCarousel}
+                  disabled={carouselStatus === 'loading'}
+                  className={`rounded px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
+                    carouselStatus === 'loading' ? 'bg-white/10 text-muted cursor-wait' : 'bg-accent text-white hover:bg-accent/90'
+                  }`}
+                  style={{ fontFamily: BODY }}
+                >
+                  {carouselStatus === 'loading' ? 'Creating...' : slideUrls ? 'Recreate' : 'Create Carousel'}
+                </button>
+              </div>
+              {slideUrls && (
+                <div className="space-y-3">
+                  <div className="flex gap-3 overflow-x-auto pb-2">
+                    {slideUrls.map((url, i) => (
+                      <div key={i} className="rounded border border-border overflow-hidden flex-shrink-0">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={url} alt={`Slide ${i + 1}`} className="block" style={{ width: '216px', height: '270px', objectFit: 'contain' }} />
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={downloadZip}
+                    className="rounded px-4 py-2 text-xs font-bold uppercase tracking-wider bg-ink text-white hover:bg-ink/90 transition-colors"
+                    style={{ fontFamily: BODY }}
+                  >
+                    Download ZIP (4 slides)
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 5: Caption */}
           {leadCategory && (
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label
-                  className="block text-xs font-bold uppercase tracking-widest text-ink"
-                  style={{ fontFamily: BODY, letterSpacing: '0.12em' }}
-                >
+                <label className="block text-xs font-bold uppercase tracking-widest text-ink" style={{ fontFamily: BODY, letterSpacing: '0.12em' }}>
                   Caption
                 </label>
                 <button
                   onClick={handleGenerateCaption}
                   disabled={captionStatus === 'loading'}
                   className={`rounded px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
-                    captionStatus === 'loading'
-                      ? 'bg-white/10 text-muted cursor-wait'
-                      : 'bg-accent text-white hover:bg-accent/90'
+                    captionStatus === 'loading' ? 'bg-white/10 text-muted cursor-wait' : 'bg-accent text-white hover:bg-accent/90'
                   }`}
                   style={{ fontFamily: BODY }}
                 >
-                  {captionStatus === 'loading'
-                    ? 'Generating...'
-                    : caption
-                      ? 'Regenerate Caption'
-                      : 'Generate Caption'}
+                  {captionStatus === 'loading' ? 'Generating...' : caption ? 'Regenerate' : 'Generate Caption'}
                 </button>
               </div>
               {caption && (
                 <div className="space-y-2">
                   <textarea
                     value={caption}
-                    onChange={e => {
-                      setCaption(e.target.value)
-                      persist({ caption: e.target.value })
-                    }}
+                    onChange={e => { setCaption(e.target.value); persist({ caption: e.target.value }) }}
                     rows={6}
                     className="w-full rounded border border-border bg-surface px-4 py-3 text-sm text-primary placeholder-muted/50 focus:outline-none focus:border-accent/60 resize-none"
                     style={{ fontFamily: BODY }}
