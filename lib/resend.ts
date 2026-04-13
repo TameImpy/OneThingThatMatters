@@ -286,7 +286,7 @@ export function renderNewsletterHTML(data: IssueData): string {
                 <img src="${appUrl}/arrow-pov-left.svg" width="65" height="58" alt="" style="display:inline-block;">
               </td>
               <td style="vertical-align:middle;text-align:center;width:20%;">
-                <img src="${appUrl}/me.jpg" alt="Matt" width="64" height="64" style="display:inline-block;width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.8);">
+                <img src="${appUrl}/me.jpg" alt="Matt" width="80" height="80" style="display:inline-block;width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.8);">
               </td>
               <td style="vertical-align:middle;text-align:center;width:40%;">
                 <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:30px;text-transform:uppercase;color:${c.white};margin:0 0 6px 0;letter-spacing:-0.01em;white-space:nowrap;">Today</p>
@@ -323,7 +323,6 @@ export function renderNewsletterHTML(data: IssueData): string {
         ${banner('One Paper That Matters')}
         ${section(`
           ${title(research.title)}
-          ${authors(research.authors ?? null)}
           ${research.summary_llm ? subheading('Summary') + bulletList(research.summary_llm) : ''}
           ${research.why_it_matters ? subheading('Why it matters') + bulletList(research.why_it_matters) : ''}
           ${research.pdf_url ? cta(research.pdf_url, '&rarr; Read the paper') : ''}
