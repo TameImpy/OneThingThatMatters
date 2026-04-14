@@ -278,7 +278,7 @@ export function renderNewsletterHTML(data: IssueData): string {
 
         ${pov ? `
         <!-- My POV Today -->
-        <tr><td style="background:${c.accent};padding:12px 32px;">
+        <tr><td style="background:${c.accent};padding:6px 32px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
             <tr>
               <td style="vertical-align:middle;text-align:center;width:40%;">
@@ -286,7 +286,7 @@ export function renderNewsletterHTML(data: IssueData): string {
                 <img src="${appUrl}/arrow-pov-left.svg" width="65" height="58" alt="" style="display:inline-block;">
               </td>
               <td style="vertical-align:middle;text-align:center;width:20%;">
-                <img src="${appUrl}/me.jpg" alt="Matt" width="80" height="80" style="display:inline-block;width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.8);">
+                <img src="${appUrl}/me.jpg" alt="Matt" width="110" height="110" style="display:inline-block;width:110px;height:110px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,0.8);">
               </td>
               <td style="vertical-align:middle;text-align:center;width:40%;">
                 <p style="font-family:${f.display};font-weight:900;font-style:italic;font-size:30px;text-transform:uppercase;color:${c.white};margin:0 0 6px 0;letter-spacing:-0.01em;white-space:nowrap;">Today</p>
