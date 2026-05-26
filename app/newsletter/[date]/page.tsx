@@ -76,6 +76,10 @@ export default function NewsletterPage({ params }: PageProps) {
   const [artCropBottom, setArtCropBottom] = useState(0)
   const [questions, setQuestions] = useState<{ category: string; question: string }[]>([])
   const [questionsStatus, setQuestionsStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [subject, setSubject] = useState<string>('')
+  const [preheader, setPreheader] = useState<string>('')
+  const [subjectSuggestions, setSubjectSuggestions] = useState<{ subject: string; preheader: string; angle: string }[]>([])
+  const [subjectsStatus, setSubjectsStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [publishing, setPublishing] = useState(false)
   const [published, setPublished] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -97,7 +101,21 @@ export default function NewsletterPage({ params }: PageProps) {
     if (storedQuestions) {
       try { setQuestions(JSON.parse(storedQuestions) as { category: string; question: string }[]) } catch { /* ignore */ }
     }
+    const storedSubject = sessionStorage.getItem(`subject-${date}`)
+    if (storedSubject) setSubject(storedSubject)
+    const storedPreheader = sessionStorage.getItem(`preheader-${date}`)
+    if (storedPreheader) setPreheader(storedPreheader)
   }, [date])
+
+  useEffect(() => {
+    if (subject) sessionStorage.setItem(`subject-${date}`, subject)
+    else sessionStorage.removeItem(`subject-${date}`)
+  }, [subject, date])
+
+  useEffect(() => {
+    if (preheader) sessionStorage.setItem(`preheader-${date}`, preheader)
+    else sessionStorage.removeItem(`preheader-${date}`)
+  }, [preheader, date])
 
   useEffect(() => {
     async function fetchAll() {
@@ -160,6 +178,8 @@ export default function NewsletterPage({ params }: PageProps) {
           pov: pov.trim() || null,
           quote: selectedQuote,
           noiseTitles,
+          subject: subject.trim() || null,
+          preheader: preheader.trim() || null,
         }),
       })
       const data = await res.json()
@@ -189,6 +209,28 @@ export default function NewsletterPage({ params }: PageProps) {
     } catch {
       setQuestionsStatus('error')
     }
+  }
+
+  async function generateSubjects() {
+    setSubjectsStatus('loading')
+    try {
+      const res = await fetch('/api/newsletter/subjects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...picks, pov: pov.trim() || null }),
+      })
+      const data = await res.json() as { success: boolean; suggestions?: { subject: string; preheader: string; angle: string }[]; error?: string }
+      if (!res.ok || !data.success) throw new Error(data.error ?? 'Failed to generate subjects')
+      setSubjectSuggestions(data.suggestions ?? [])
+      setSubjectsStatus('idle')
+    } catch {
+      setSubjectsStatus('error')
+    }
+  }
+
+  function useSuggestion(s: { subject: string; preheader: string }) {
+    setSubject(s.subject)
+    setPreheader(s.preheader)
   }
 
   const allPicked = picks.watch && picks.news && picks.research
@@ -337,6 +379,90 @@ export default function NewsletterPage({ params }: PageProps) {
                     </li>
                   ))}
                 </ul>
+              )}
+            </div>
+
+            {/* Subject + Preheader */}
+            <div className="mb-8 rounded border border-border bg-surface p-5">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-bold uppercase tracking-widest text-ink" style={{ fontFamily: BODY, letterSpacing: '0.12em' }}>
+                  Email Headline
+                </span>
+                <button
+                  onClick={generateSubjects}
+                  disabled={!allPicked || subjectsStatus === 'loading'}
+                  className={`rounded px-3 py-1.5 text-xs uppercase tracking-wider transition-colors ${
+                    allPicked && subjectsStatus !== 'loading'
+                      ? 'bg-accent text-white hover:bg-accent/90'
+                      : 'bg-muted/20 text-muted cursor-not-allowed'
+                  }`}
+                  style={{ fontFamily: BODY }}
+                >
+                  {subjectsStatus === 'loading'
+                    ? 'Generating…'
+                    : subjectSuggestions.length > 0
+                      ? 'Regenerate'
+                      : 'Suggest subjects'}
+                </button>
+              </div>
+
+              <label className="block text-xs text-muted mb-1" style={{ fontFamily: BODY }}>
+                Subject line <span className={subject.length > 60 ? 'text-red-500' : 'text-muted/60'}>· {subject.length}/60</span>
+              </label>
+              <input
+                type="text"
+                value={subject}
+                onChange={e => setSubject(e.target.value)}
+                placeholder="What appears in the inbox (e.g. “Stop thinking of agents as software”)"
+                className="w-full mb-4 rounded border border-border bg-page px-3 py-2 text-sm text-primary placeholder-muted/50 focus:outline-none focus:border-accent/60"
+                style={{ fontFamily: BODY }}
+              />
+
+              <label className="block text-xs text-muted mb-1" style={{ fontFamily: BODY }}>
+                Preheader (preview text shown after the subject) <span className={preheader.length > 110 ? 'text-red-500' : 'text-muted/60'}>· {preheader.length}/110</span>
+              </label>
+              <input
+                type="text"
+                value={preheader}
+                onChange={e => setPreheader(e.target.value)}
+                placeholder="A complementary teaser of the other items in this issue"
+                className="w-full rounded border border-border bg-page px-3 py-2 text-sm text-primary placeholder-muted/50 focus:outline-none focus:border-accent/60"
+                style={{ fontFamily: BODY }}
+              />
+
+              {subjectsStatus === 'error' && (
+                <p className="mt-3 text-xs text-red-500" style={{ fontFamily: BODY }}>Failed to generate suggestions. Try again.</p>
+              )}
+
+              {subjectSuggestions.length > 0 && (
+                <div className="mt-5">
+                  <p className="text-xs uppercase tracking-widest text-muted mb-2" style={{ fontFamily: BODY, letterSpacing: '0.12em' }}>
+                    Suggestions
+                  </p>
+                  <ul className="space-y-2">
+                    {subjectSuggestions.map((s, i) => {
+                      const selected = subject === s.subject && preheader === s.preheader
+                      return (
+                        <li
+                          key={i}
+                          onClick={() => useSuggestion(s)}
+                          className={`rounded border px-4 py-3 cursor-pointer transition-colors ${
+                            selected
+                              ? 'border-accent bg-accent/5'
+                              : 'border-border bg-page hover:border-accent/40'
+                          }`}
+                        >
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-accent" style={{ fontFamily: BODY }}>{s.angle}</span>
+                            <span className="text-sm font-semibold text-primary" style={{ fontFamily: BODY }}>{s.subject}</span>
+                          </div>
+                          <p className="text-xs text-muted mt-1" style={{ fontFamily: BODY }}>{s.preheader}</p>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                  <p className="text-xs text-muted/60 mt-2" style={{ fontFamily: BODY }}>Click a suggestion to use it. You can edit it after.</p>
+                </div>
               )}
             </div>
 

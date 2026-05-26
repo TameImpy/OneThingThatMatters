@@ -26,6 +26,7 @@ interface IssueData {
   artCropBottom?: number
   quote?: DailyQuote | null
   noiseTitles?: string[]
+  preheader?: string | null
 }
 
 function formatDate(dateStr: string): string {
@@ -146,7 +147,7 @@ export function renderWelcomeEmailHTML(name: string | null): string {
 }
 
 export function renderNewsletterHTML(data: IssueData): string {
-  const { issue_date, issueNumber, pov, watch, news, research, story, art, artCropBottom, quote, noiseTitles } = data
+  const { issue_date, issueNumber, pov, watch, news, research, story, art, artCropBottom, quote, noiseTitles, preheader } = data
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://onethingmatters.com'
 
   // Escape user/AI content before embedding in HTML.
@@ -241,6 +242,7 @@ export function renderNewsletterHTML(data: IssueData): string {
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,900&display=swap" rel="stylesheet">
 </head>
 <body style="margin:0;padding:0;background:${c.white};">
+  ${preheader ? `<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;visibility:hidden;color:transparent;">${e(preheader)}</div>` : ''}
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${c.white};">
     <tr><td align="center">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">

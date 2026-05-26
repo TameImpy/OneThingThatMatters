@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: 'Invalid JSON body' }, { status: 400 })
   }
 
-  const { issue_date, picks, art_id, artCropBottom, pov, quote, noiseTitles } = body as Partial<PublishRequest> & { art_id?: string | null; artCropBottom?: number; pov?: string | null; quote?: DailyQuote | null; noiseTitles?: string[] }
+  const { issue_date, picks, art_id, artCropBottom, pov, quote, noiseTitles, subject, preheader } = body as Partial<PublishRequest> & { art_id?: string | null; artCropBottom?: number; pov?: string | null; quote?: DailyQuote | null; noiseTitles?: string[]; subject?: string | null; preheader?: string | null }
 
   if (!issue_date) {
     return NextResponse.json({ success: false, error: 'Missing issue_date' }, { status: 400 })
@@ -54,6 +54,9 @@ export async function POST(req: NextRequest) {
       new Date(issue_date + 'T12:00:00Z')
     ))
 
+    const trimmedSubject = subject?.trim() || null
+    const trimmedPreheader = preheader?.trim() || null
+
     // Render HTML
     const html = renderNewsletterHTML({
       issue_date,
@@ -67,14 +70,16 @@ export async function POST(req: NextRequest) {
       artCropBottom: artCropBottom ?? undefined,
       quote: quote ?? null,
       noiseTitles: noiseTitles ?? [],
+      preheader: trimmedPreheader,
     })
 
     // Send via Resend batch API
     const fromAddress = process.env.RESEND_FROM ?? 'One Thing That Matters <newsletter@onethingmatters.com>'
+    const finalSubject = trimmedSubject ?? `One Thing That Matters · ${issue_date}`
     const emails = subscribers.map(({ email }) => ({
       from: fromAddress,
       to: [email],
-      subject: `One Thing That Matters · ${issue_date}`,
+      subject: finalSubject,
       html: html.replace(/\{\{email\}\}/g, encodeURIComponent(email)),
     }))
 
