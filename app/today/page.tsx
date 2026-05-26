@@ -103,8 +103,11 @@ function TodayDashboard() {
     async function fetchAll() {
       try {
         const qs = `?date=${today}`
+        // TEMP: YouTube API quota in n8n is exhausted — widen watch window to 7 days
+        // so the editor has more than one candidate. Revert to `${qs}` when n8n is healthy again.
+        const watchQs = `${qs}&daysBack=7`
         const [wRes, nRes, rRes, sRes, aRes, iRes] = await Promise.all([
-          fetch(`/api/today/watch${qs}`),
+          fetch(`/api/today/watch${watchQs}`),
           fetch(`/api/today/news${qs}`),
           fetch(`/api/today/research${qs}`),
           fetch(`/api/today/story${qs}`),
