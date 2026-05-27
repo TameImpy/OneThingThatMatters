@@ -306,10 +306,8 @@ export function renderNewsletterHTML(data: IssueData): string {
           <img src="${art.image_url}" alt="${art.caption ?? ''}" width="600" style="display:block;width:100%;max-height:${artCropHeight(artCropBottom)}px;object-fit:cover;${artCropBottom ? 'object-position:top;' : ''}">
         </td></tr>
         ${section(`
-          ${art.artist_tagline ? `<p style="font-family:${f.body};font-size:18px;font-style:italic;color:${c.textPrimary};line-height:1.5;margin:0 0 14px 0;">${e(art.artist_tagline)}</p>` : ''}
           ${art.caption ? `<p style="font-family:${f.body};font-size:15px;color:${c.textPrimary};line-height:1.7;margin:0 0 16px 0;">${e(art.caption)}</p>` : ''}
-          ${art.artist_name ? `<p style="font-family:${f.body};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${c.textMuted};margin:0 0 6px 0;">${e(art.artist_name)}</p>` : ''}
-          ${art.bio ? `<p style="font-family:${f.body};font-size:13px;font-style:italic;color:${c.textMuted};line-height:1.6;margin:0;">${e(art.bio)}</p>` : ''}
+          ${art.artist_name ? `<p style="font-family:${f.body};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:${c.textMuted};margin:0;">${e(art.artist_name)}</p>` : ''}
         `)}` : ''}
 
         ${news ? `

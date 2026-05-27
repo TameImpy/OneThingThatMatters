@@ -343,11 +343,6 @@ export default function NewsletterPreview({
             />
           </div>
           <ContentSection>
-            {art.artist_tagline && (
-              <p style={{ fontFamily: BODY, fontSize: '18px', fontStyle: 'italic', color: PRIMARY, lineHeight: 1.5, margin: '0 0 14px 0' }}>
-                {art.artist_tagline}
-              </p>
-            )}
             {art.caption && (
               <p style={{ fontFamily: BODY, fontSize: '15px', color: PRIMARY, lineHeight: 1.7, margin: '0 0 16px 0' }}>
                 {art.caption}
@@ -356,11 +351,6 @@ export default function NewsletterPreview({
             {art.artist_name && (
               <p style={{ fontFamily: BODY, fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: MUTED, margin: '0 0 6px 0' }}>
                 {art.artist_name}
-              </p>
-            )}
-            {art.bio && (
-              <p style={{ fontFamily: BODY, fontSize: '13px', color: MUTED, fontStyle: 'italic', lineHeight: 1.6, margin: 0 }}>
-                {art.bio}
               </p>
             )}
           </ContentSection>
