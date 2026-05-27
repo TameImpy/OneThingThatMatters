@@ -121,8 +121,11 @@ export default function NewsletterPage({ params }: PageProps) {
     async function fetchAll() {
       try {
         const qs = `?date=${date}`
+        // Must match /today's window — otherwise the picked watch row may fall
+        // outside the query range and the page resolves to a stale pick.
+        const watchQs = `${qs}&daysBack=7`
         const [wRes, nRes, rRes, sRes, aRes, iRes] = await Promise.all([
-          fetch(`/api/today/watch${qs}`),
+          fetch(`/api/today/watch${watchQs}`),
           fetch(`/api/today/news${qs}`),
           fetch(`/api/today/research${qs}`),
           fetch(`/api/today/story${qs}`),

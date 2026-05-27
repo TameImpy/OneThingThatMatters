@@ -73,18 +73,52 @@ export async function getTodayItems<T>(
 }
 
 /**
- * Mark an item as picked. Uses `selected = true` for stories table,
- * `picked = true, picked_at = now()` for all others.
+ * Mark an item as picked, atomically clearing any prior picks in the same table.
+ * One pick per category — prevents stale picks from earlier days bleeding into
+ * later issues (e.g. /newsletter/[date] resolving to yesterday's video).
+ *
+ * Sets the new pick first and aborts on a no-op. Clearing-then-setting would
+ * wipe all picks if the new id were stale or invalid.
  */
 export async function pickItem(table: CategoryTable, id: string): Promise<void> {
   const isStories = table === 'stories_of_past_candidates'
 
-  const update = isStories
-    ? { selected: true }
-    : { picked: true, picked_at: new Date().toISOString() }
+  if (isStories) {
+    const { data: setRows, error: setError } = await supabase
+      .from(table)
+      .update({ selected: true })
+      .eq('id', id)
+      .select('id')
+    if (setError) throw new Error(setError.message)
+    if (!setRows || setRows.length === 0) {
+      throw new Error(`No row in ${table} matches id ${id}`)
+    }
 
-  const { error } = await supabase.from(table).update(update).eq('id', id)
-  if (error) throw new Error(error.message)
+    const { error: clearError } = await supabase
+      .from(table)
+      .update({ selected: false })
+      .eq('selected', true)
+      .neq('id', id)
+    if (clearError) throw new Error(clearError.message)
+    return
+  }
+
+  const { data: setRows, error: setError } = await supabase
+    .from(table)
+    .update({ picked: true, picked_at: new Date().toISOString() })
+    .eq('id', id)
+    .select('id')
+  if (setError) throw new Error(setError.message)
+  if (!setRows || setRows.length === 0) {
+    throw new Error(`No row in ${table} matches id ${id}`)
+  }
+
+  const { error: clearError } = await supabase
+    .from(table)
+    .update({ picked: false, picked_at: null })
+    .eq('picked', true)
+    .neq('id', id)
+  if (clearError) throw new Error(clearError.message)
 }
 
 /** Undo a pick — reverses pickItem(). */
