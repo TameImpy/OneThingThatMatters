@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
@@ -9,29 +9,52 @@ const BODY = "Georgia, 'Times New Roman', serif"
 
 type Status = 'success' | 'already' | 'invalid' | null
 
+const CONTENT: Record<NonNullable<Status>, { diamond: string; heading: string; body: string }> = {
+  success: {
+    diamond: '◆',
+    heading: "You're in.",
+    body: "Your subscription is confirmed. You'll get your first issue next weekday morning.",
+  },
+  already: {
+    diamond: '◆',
+    heading: 'Already confirmed.',
+    body: "You're already subscribed. Look out for your next issue on a weekday morning.",
+  },
+  invalid: {
+    diamond: '◇',
+    heading: 'Link expired.',
+    body: 'This confirmation link is invalid or has already been used. Subscribe again to get a fresh link.',
+  },
+}
+
 function ConfirmContent() {
   const searchParams = useSearchParams()
-  const status = searchParams.get('status') as Status
+  const token = searchParams.get('token')
+  const initialStatus = searchParams.get('status') as Status
 
-  const content: Record<NonNullable<Status>, { diamond: string; heading: string; body: string }> = {
-    success: {
-      diamond: '◆',
-      heading: "You're in.",
-      body: "Your subscription is confirmed. You'll get your first issue next weekday morning.",
-    },
-    already: {
-      diamond: '◆',
-      heading: 'Already confirmed.',
-      body: "You're already subscribed. Look out for your next issue on a weekday morning.",
-    },
-    invalid: {
-      diamond: '◇',
-      heading: 'Link expired.',
-      body: 'This confirmation link is invalid or has already been used. Subscribe again to get a fresh link.',
-    },
+  const [status, setStatus] = useState<Status>(initialStatus)
+  const [submitting, setSubmitting] = useState(false)
+
+  async function confirm() {
+    if (!token || submitting) return
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/subscribe/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      })
+      const data = await res.json() as { status: NonNullable<Status> }
+      setStatus(data.status)
+    } catch {
+      setStatus('invalid')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
-  const c = status ? content[status] : null
+  const showButton = !!token && !status
+  const c = status ? CONTENT[status] : null
   const isError = status === 'invalid'
 
   return (
@@ -48,7 +71,39 @@ function ConfirmContent() {
         </div>
 
         <div className="bg-surface px-8 py-8 border-x border-border text-center">
-          {c ? (
+          {showButton ? (
+            <>
+              <p
+                style={{
+                  fontFamily: DISPLAY,
+                  fontWeight: 900,
+                  fontStyle: 'italic',
+                  fontSize: '28px',
+                  color: '#22D3EE',
+                  textTransform: 'uppercase',
+                  lineHeight: 1,
+                  margin: '0 0 12px 0',
+                }}
+              >
+                ◆&nbsp;One step left.
+              </p>
+              <p className="text-muted text-sm leading-relaxed" style={{ fontFamily: BODY, margin: '0 0 20px 0' }}>
+                Click the button below to confirm your email and activate your subscription.
+              </p>
+              <button
+                onClick={confirm}
+                disabled={submitting}
+                className={`inline-block rounded px-5 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${
+                  submitting
+                    ? 'bg-accent/50 text-white cursor-not-allowed'
+                    : 'bg-accent text-white hover:bg-accent/90'
+                }`}
+                style={{ fontFamily: BODY }}
+              >
+                {submitting ? 'Confirming…' : '◆ Confirm subscription'}
+              </button>
+            </>
+          ) : c ? (
             <>
               <p
                 style={{

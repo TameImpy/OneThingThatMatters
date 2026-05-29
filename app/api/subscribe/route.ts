@@ -41,7 +41,11 @@ export async function POST(req: NextRequest) {
   }
 
   const token = randomBytes(32).toString('hex')
-  const confirmUrl = `${APP_URL}/api/subscribe/confirm?token=${token}`
+  // Email links to the confirmation page (safe GET), not the API. The user
+  // clicks a button on that page which POSTs to /api/subscribe/confirm —
+  // defeats email security scanners that pre-fetch GET links and would
+  // otherwise burn the one-time token before the human can click.
+  const confirmUrl = `${APP_URL}/subscribe/confirm?token=${token}`
 
   if (existing) {
     // Existing unconfirmed subscriber — refresh token and resend
